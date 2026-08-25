@@ -1,0 +1,15 @@
+{
+  "name": "Forma",
+  "short_name": "Forma",
+  "description": "Vazningizni nazorat qiling — ozing yoki semiring, Forma yo'lingizni birga bosib o'tadi.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0D1F1A",
+  "theme_color": "#0D1F1A",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

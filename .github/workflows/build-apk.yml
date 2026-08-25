@@ -29,12 +29,22 @@ jobs:
       - name: Restore signing keystore
         run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android.keystore
 
+      - name: Pre-configure Bubblewrap (use our own JDK, auto-install Android SDK)
+        run: |
+          mkdir -p ~/.bubblewrap
+          cat > ~/.bubblewrap/config.json << EOF
+          {
+            "jdkPath": "${JAVA_HOME}",
+            "androidSdkPath": "${HOME}/android-sdk"
+          }
+          EOF
+
       - name: Build APK
         env:
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
-          bubblewrap build \
+          yes "" | bubblewrap build \
             --skipPwaValidation \
             --password="$ANDROID_KEYSTORE_PASSWORD" \
             --keyPassword="$ANDROID_KEY_PASSWORD"

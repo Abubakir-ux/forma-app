@@ -1,0 +1,41 @@
+{
+  "packageId": "io.github.abubakir_ux.twa",
+  "host": "abubakir-ux.github.io",
+  "name": "Forma",
+  "launcherName": "Forma",
+  "display": "standalone",
+  "themeColor": "#0D1F1A",
+  "navigationColor": "#0D1F1A",
+  "navigationColorDark": "#0D1F1A",
+  "backgroundColor": "#0D1F1A",
+  "enableNotifications": false,
+  "startUrl": "/forma-app/index.html",
+  "iconUrl": "https://abubakir-ux.github.io/forma-app/icon-512.png",
+  "maskableIconUrl": "https://abubakir-ux.github.io/forma-app/icon-512.png",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "./android.keystore",
+    "alias": "my-key-alias"
+  },
+  "appVersionName": "1.0.0",
+  "appVersionCode": 1,
+  "shortcuts": [],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://abubakir-ux.github.io/forma-app/manifest.json",
+  "fallbackType": "customtabs",
+  "features": {},
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "fullScopeUrl": "https://abubakir-ux.github.io/forma-app/",
+  "minSdkVersion": 21,
+  "orientation": "portrait",
+  "fingerprints": [],
+  "additionalTrustedOrigins": [],
+  "retainedBundles": [],
+  "protocolHandlers": [],
+  "shareTarget": null
+}

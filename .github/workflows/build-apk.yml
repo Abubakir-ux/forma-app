@@ -29,13 +29,12 @@ jobs:
       - name: Restore signing keystore
         run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android.keystore
 
-      - name: Pre-configure Bubblewrap (use our own JDK, auto-install Android SDK)
+      - name: Pre-configure Bubblewrap (use our own JDK)
         run: |
           mkdir -p ~/.bubblewrap
           cat > ~/.bubblewrap/config.json << EOF
           {
-            "jdkPath": "${JAVA_HOME}",
-            "androidSdkPath": "${HOME}/android-sdk"
+            "jdkPath": "${JAVA_HOME}"
           }
           EOF
 

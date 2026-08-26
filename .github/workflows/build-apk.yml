@@ -8,6 +8,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -17,6 +18,9 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
+
+      - name: Set up Android SDK (licenses auto-accepted)
+        uses: android-actions/setup-android@v3
 
       - name: Set up Node
         uses: actions/setup-node@v4
@@ -29,12 +33,13 @@ jobs:
       - name: Restore signing keystore
         run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android.keystore
 
-      - name: Pre-configure Bubblewrap (use our own JDK)
+      - name: Pre-configure Bubblewrap (point to pre-installed JDK + SDK)
         run: |
           mkdir -p ~/.bubblewrap
           cat > ~/.bubblewrap/config.json << EOF
           {
-            "jdkPath": "${JAVA_HOME}"
+            "jdkPath": "${JAVA_HOME}",
+            "androidSdkPath": "${ANDROID_HOME}"
           }
           EOF
 
@@ -43,7 +48,7 @@ jobs:
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
-          yes | bubblewrap build \
+          bubblewrap build \
             --skipPwaValidation \
             --password="$ANDROID_KEYSTORE_PASSWORD" \
             --keyPassword="$ANDROID_KEY_PASSWORD"

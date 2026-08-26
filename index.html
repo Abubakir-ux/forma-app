@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="uz">
-<head> 
+<head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
 <title>Forma</title>
@@ -412,6 +412,172 @@
     margin-top:14px;
   }
   .hint b{ color:var(--text); }
+
+  /* Results / dashboard screen */
+  .results-scroll{
+    flex:1;
+    overflow-y:auto;
+    margin:0 -28px;
+    padding:0 28px 4px 28px;
+  }
+  .calorie-card{
+    background:linear-gradient(135deg, rgba(198,255,107,0.14), rgba(198,255,107,0.02));
+    border:1px solid rgba(198,255,107,0.28);
+    border-radius:20px;
+    padding:24px;
+    text-align:center;
+    margin-bottom:22px;
+  }
+  .calorie-card.gain{
+    background:linear-gradient(135deg, rgba(255,178,91,0.14), rgba(255,178,91,0.02));
+    border-color:rgba(255,178,91,0.28);
+  }
+  .calorie-label{ font-size:13px; color:var(--muted); margin-bottom:8px; }
+  .calorie-value{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:42px;
+    font-weight:700;
+    color:var(--lime);
+    display:flex;
+    align-items:baseline;
+    justify-content:center;
+    gap:8px;
+  }
+  .calorie-card.gain .calorie-value{ color:var(--amber); }
+  .calorie-value .calorie-unit{ font-size:15px; color:var(--muted); font-weight:500; }
+  .calorie-sub{ font-size:12px; color:var(--muted); margin-top:8px; }
+
+  .section-label{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:13px;
+    font-weight:600;
+    color:var(--text);
+    margin:22px 0 12px 0;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+  }
+  .plan-list{ display:flex; flex-direction:column; gap:10px; margin-bottom:4px; }
+  .plan-item{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:13px 16px;
+  }
+  .plan-item .pi-icon{
+    width:40px; height:40px;
+    border-radius:11px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:19px;
+    flex-shrink:0;
+    background:rgba(198,255,107,0.14);
+  }
+  .plan-item.gain .pi-icon{ background:rgba(255,178,91,0.16); }
+  .plan-item .pi-txt strong{ display:block; font-size:14px; font-weight:600; }
+  .plan-item .pi-txt span{ font-size:12px; color:var(--muted); }
+
+  /* Timeline / advice / diet cards */
+  .info-card{
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:18px;
+    margin-bottom:14px;
+  }
+  .info-card .ic-title{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:15px;
+    font-weight:700;
+    margin-bottom:6px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .info-card .ic-body{ font-size:13.5px; color:var(--muted); line-height:1.5; }
+  .info-card .ic-body b{ color:var(--text); }
+
+  .tag-row{ display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+  .tag{
+    font-size:12px;
+    padding:6px 12px;
+    border-radius:100px;
+    background:rgba(198,255,107,0.12);
+    color:var(--lime);
+    border:1px solid rgba(198,255,107,0.25);
+  }
+  .tag.bad{
+    background:rgba(255,107,107,0.10);
+    color:var(--danger);
+    border-color:rgba(255,107,107,0.25);
+  }
+
+  /* Food photo tool */
+  .photo-tool{
+    background:linear-gradient(135deg, rgba(255,178,91,0.14), rgba(255,178,91,0.02));
+    border:1px solid rgba(255,178,91,0.28);
+    border-radius:18px;
+    padding:20px;
+    margin-bottom:22px;
+    text-align:center;
+  }
+  .photo-tool .pt-icon{ font-size:30px; margin-bottom:8px; }
+  .photo-tool .pt-title{ font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:15px; margin-bottom:4px; }
+  .photo-tool .pt-sub{ font-size:12.5px; color:var(--muted); margin-bottom:14px; }
+  .btn-amber{ background:var(--amber); color:#2A1B0A; }
+
+  .photo-result{
+    margin-top:14px;
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:14px;
+    text-align:left;
+    display:none;
+  }
+  .photo-result.show{ display:block; }
+  .photo-result img{ width:100%; border-radius:10px; margin-bottom:10px; max-height:140px; object-fit:cover; }
+  .photo-result .pr-name{ font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:15px; }
+  .photo-result .pr-cal{ color:var(--amber); font-weight:700; font-size:20px; margin:2px 0; }
+  .photo-result .pr-note{ font-size:12px; color:var(--muted); }
+
+  /* Premium lock */
+  .premium-card{
+    position:relative;
+    border-radius:18px;
+    overflow:hidden;
+    margin-bottom:4px;
+  }
+  .premium-blur{
+    filter:blur(5px);
+    opacity:0.5;
+    pointer-events:none;
+    user-select:none;
+  }
+  .premium-overlay{
+    position:absolute;
+    inset:0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    background:rgba(13,31,26,0.55);
+    padding:20px;
+    text-align:center;
+  }
+  .premium-overlay .lock-icon{
+    width:44px; height:44px;
+    border-radius:50%;
+    background:var(--lime);
+    color:#0D1F1A;
+    display:flex; align-items:center; justify-content:center;
+    font-size:20px;
+  }
+  .premium-overlay .po-title{ font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:15px; }
+  .premium-overlay .po-sub{ font-size:12px; color:var(--muted); max-width:220px; }
+  .btn-small{ padding:10px 20px; font-size:13px; width:auto; }
 </style>
 </head>
 <body>
@@ -484,8 +650,57 @@
       <button class="btn btn-primary" id="goalBtn" disabled onclick="goNext()">Davom etish</button>
     </div>
 
-    <!-- 5: Current weight -->
+    <!-- 5: Gender -->
     <div class="screen" data-step="5">
+      <div class="eyebrow">Ma'lumot</div>
+      <h1>Jinsingiz?</h1>
+      <p class="sub">Kaloriya me'yorini aniqroq hisoblash uchun kerak.</p>
+      <div class="goal-grid">
+        <div class="goal-card lose" id="genderMaleCard" onclick="selectGender('male')">
+          <div class="icon">♂</div>
+          <div class="txt"><strong>Erkak</strong><span></span></div>
+        </div>
+        <div class="goal-card gain" id="genderFemaleCard" onclick="selectGender('female')">
+          <div class="icon">♀</div>
+          <div class="txt"><strong>Ayol</strong><span></span></div>
+        </div>
+      </div>
+      <div class="spacer"></div>
+      <button class="btn btn-primary" id="genderBtn" disabled onclick="goNext()">Davom etish</button>
+    </div>
+
+    <!-- 6: Age -->
+    <div class="screen" data-step="6">
+      <div class="eyebrow">Ma'lumot</div>
+      <h1>Necha yoshdasiz?</h1>
+      <div class="weight-wrap">
+        <div class="weight-display"><span id="ageVal">25</span><span class="unit">yosh</span></div>
+        <div class="ruler" id="ageRuler"></div>
+        <div class="stepper-row">
+          <div class="step-btn" onclick="stepNumber('age',-1)">−</div>
+          <div class="step-btn" onclick="stepNumber('age',1)">+</div>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="goNext()">Davom etish</button>
+    </div>
+
+    <!-- 7: Height -->
+    <div class="screen" data-step="7">
+      <div class="eyebrow">Ma'lumot</div>
+      <h1>Bo'yingiz qancha?</h1>
+      <div class="weight-wrap">
+        <div class="weight-display"><span id="heightVal">165</span><span class="unit">sm</span></div>
+        <div class="ruler" id="heightRuler"></div>
+        <div class="stepper-row">
+          <div class="step-btn" onclick="stepNumber('height',-1)">−</div>
+          <div class="step-btn" onclick="stepNumber('height',1)">+</div>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="goNext()">Davom etish</button>
+    </div>
+
+    <!-- 8: Current weight -->
+    <div class="screen" data-step="8">
       <div class="eyebrow">Hozirgi vazn</div>
       <h1 id="currentWeightTitle">Hozirgi vazningiz qancha?</h1>
       <div class="weight-wrap">
@@ -499,8 +714,8 @@
       <button class="btn btn-primary" onclick="goNext()">Davom etish</button>
     </div>
 
-    <!-- 6: Target weight -->
-    <div class="screen" data-step="6">
+    <!-- 9: Target weight -->
+    <div class="screen" data-step="9">
       <div class="eyebrow">Maqsad vazn</div>
       <h1 id="targetWeightTitle">Qaysi vaznga tushmoqchisiz?</h1>
       <div class="weight-wrap">
@@ -514,42 +729,119 @@
       <button class="btn btn-primary" onclick="finish()">Yakunlash</button>
     </div>
 
-    <!-- 7: Summary -->
-    <div class="screen" data-step="7">
+    <!-- 10: Results dashboard -->
+    <div class="screen" data-step="10">
       <div class="eyebrow">Tayyor</div>
-      <h1 id="summaryTitle">Tabriklaymiz!</h1>
-      <p class="sub" id="summarySub">Rejangiz tayyor bo'ldi.</p>
-      <div class="summary-hero">
-        <div class="big" id="summaryDiff">−5 kg</div>
+      <h1 id="resultsTitle">Tabriklaymiz!</h1>
+      <div class="results-scroll">
+        <div class="calorie-card" id="calorieCard">
+          <div class="calorie-label">Kunlik kaloriya me'yori</div>
+          <div class="calorie-value"><span id="calorieVal">1800</span><span class="calorie-unit">kkal</span></div>
+          <div class="calorie-sub" id="calorieSub">—</div>
+        </div>
+
+        <div class="info-card">
+          <div class="ic-title">📅 <span id="timelineTitle">Taxminiy muddat</span></div>
+          <div class="ic-body" id="timelineBody">—</div>
+        </div>
+
+        <div class="info-card" id="adviceCard">
+          <div class="ic-title">🚶 Kunlik maslahat</div>
+          <div class="ic-body" id="adviceBody">—</div>
+        </div>
+
+        <div class="info-card">
+          <div class="ic-title">🥗 Parhez qoidalari</div>
+          <div class="ic-body">
+            <b>Cheklang:</b>
+            <div class="tag-row" id="avoidTags"></div>
+            <div style="margin-top:12px;"><b>Ko'proq iste'mol qiling:</b></div>
+            <div class="tag-row" id="goodTags"></div>
+          </div>
+        </div>
+
+        <div class="photo-tool">
+          <div class="pt-icon">📸</div>
+          <div class="pt-title">Ovqat kaloriyasini bilish</div>
+          <div class="pt-sub">Taomingiz rasmini oling — AI kaloriyasini taxmin qilib beradi</div>
+          <input type="file" id="foodPhotoInput" accept="image/*" capture="environment" style="display:none" onchange="handleFoodPhoto(event)">
+          <button class="btn btn-amber" onclick="document.getElementById('foodPhotoInput').click()" id="photoBtn">Rasmga olish / tanlash</button>
+          <div class="photo-result" id="photoResult"></div>
+        </div>
+
+        <div class="section-label">Shaxsiy mashq va taom rejasi</div>
+        <div class="premium-card">
+          <div class="premium-blur">
+            <div class="plan-list" id="exerciseList"></div>
+            <div class="plan-list" id="mealList" style="margin-top:10px;"></div>
+          </div>
+          <div class="premium-overlay">
+            <div class="lock-icon">🔒</div>
+            <div class="po-title">Premium xususiyat</div>
+            <div class="po-sub">To'liq mashq va taom rejasini ochish uchun Premium'ga o'ting</div>
+            <button class="btn btn-primary btn-small" onclick="alert('Premium sotib olish tez orada qo\u02bcshiladi')">Premium olish</button>
+          </div>
+        </div>
+
+        <div class="hint" style="margin:18px 0 4px 0;">Bu — <b>onboarding demo</b>. Haqiqiy ilovada mashq/taom bazasi kengroq bo'ladi.</div>
       </div>
-      <div class="summary-card">
-        <div class="summary-row"><span class="k">Ism</span><span class="v" id="sumName">—</span></div>
-        <div class="summary-row"><span class="k">Maqsad</span><span class="v" id="sumGoal">—</span></div>
-        <div class="summary-row"><span class="k">Hozirgi vazn</span><span class="v" id="sumCur">—</span></div>
-        <div class="summary-row"><span class="k">Maqsad vazn</span><span class="v" id="sumTgt">—</span></div>
-      </div>
-      <div class="spacer"></div>
       <button class="btn btn-primary" onclick="restart()">Ilovaga o'tish</button>
-      <div class="hint">Bu — <b>onboarding demo</b>. Keyingi ekran haqiqiy ilovada dashboard bo'ladi.</div>
     </div>
 
   </div>
 </div>
 
 <script>
+// Cloudflare Worker manzili — ovqat rasmini Gemini'ga xavfsiz jo'natish uchun
+const CALORIE_API_URL = 'https://forma-calorie-api.abubakirtohirov720.workers.dev';
 let step = 0;
 let goal = null;
+let gender = null;
+let age = 25;
+let height = 165;
 let curWeight = 65;
 let tgtWeight = 60;
 const state = { name:'', phone:'' };
 
-// progress dots only represent steps 1..6 (name -> target weight)
-const SEG_START = 1, SEG_END = 6;
+const EXERCISES = {
+  lose: [
+    {icon:'🏃', title:'Tez yurish', sub:'30 daqiqa, har kuni'},
+    {icon:'🚴', title:'Velosiped haydash', sub:'30 daqiqa, haftada 3 marta'},
+    {icon:'🤸', title:'Mokisimon yugurish', sub:'15 daqiqa, intervalli'},
+    {icon:'🏊', title:'Suzish', sub:'30 daqiqa, haftada 2 marta'},
+    {icon:'🪢', title:'Arqon sakrash', sub:'10 daqiqa, har kuni'}
+  ],
+  gain: [
+    {icon:'🏋️', title:"Cho'kkalab turish (squat)", sub:"4x12, og'irlik bilan"},
+    {icon:'💪', title:'Gantel bilan mashqlar', sub:'4x10, haftada 3 marta'},
+    {icon:'🤲', title:'Turnikda tortilish', sub:'4x8'},
+    {icon:'🧎', title:'Lunges (qadam tashlab cho\u02bckish)', sub:'4x12 har oyoqqa'},
+    {icon:'🪵', title:'Plank', sub:'3x1 daqiqa'}
+  ]
+};
+
+const MEALS = {
+  lose: [
+    {icon:'🥗', title:"Sabzavotli tovuq ko'krak eti", sub:'~350 kkal'},
+    {icon:'🐟', title:"Bug'da pishirilgan baliq", sub:'~300 kkal'},
+    {icon:'🥣', title:'Yogurt va meva', sub:'~200 kkal'},
+    {icon:'🍲', title:"Sabzavotli sho'rva", sub:'~250 kkal'}
+  ],
+  gain: [
+    {icon:'🍚', title:"Guruch va mol go'shti", sub:'~650 kkal'},
+    {icon:'🥚', title:'Tuxum va non', sub:'~450 kkal'},
+    {icon:'🥜', title:"Yong'oq va quritilgan meva", sub:'~400 kkal'},
+    {icon:'🥛', title:'Sut-banan smoothie', sub:'~350 kkal'}
+  ]
+};
+
+// progress dots only represent steps 1..9 (name -> target weight)
+const SEG_START = 1, SEG_END = 9;
 
 function renderProgress(){
   const wrap = document.getElementById('progress');
   wrap.innerHTML = '';
-  if(step < SEG_START || step > 7){ wrap.style.display = 'none'; return; }
+  if(step < SEG_START || step > 9){ wrap.style.display = 'none'; return; }
   wrap.style.display = 'flex';
   for(let i = SEG_START; i <= SEG_END; i++){
     const dot = document.createElement('div');
@@ -623,8 +915,17 @@ function selectGoal(g){
   updateWeightDisplay();
 }
 
+function selectGender(g){
+  gender = g;
+  document.getElementById('genderMaleCard').classList.toggle('selected', g==='male');
+  document.getElementById('genderFemaleCard').classList.toggle('selected', g==='female');
+  document.getElementById('genderBtn').disabled = false;
+}
+
 function renderRuler(which){
-  const el = document.getElementById(which === 'cur' ? 'curRuler' : 'tgtRuler');
+  const map = { cur:'curRuler', tgt:'tgtRuler', age:'ageRuler', height:'heightRuler' };
+  const el = document.getElementById(map[which]);
+  if(!el) return;
   el.innerHTML = '';
   for(let i=0;i<40;i++){
     const t = document.createElement('div');
@@ -650,39 +951,165 @@ function stepWeight(which, dir){
   updateWeightDisplay();
 }
 
+function stepNumber(which, dir){
+  if(which === 'age'){
+    age = Math.min(90, Math.max(12, age + dir));
+    document.getElementById('ageVal').textContent = age;
+  } else if(which === 'height'){
+    height = Math.min(220, Math.max(120, height + dir));
+    document.getElementById('heightVal').textContent = height;
+  }
+}
+
+// Mifflin-St Jeor formula — tibbiyotda keng tan olingan, ishonchli hisoblash usuli.
+// Bu yerda AI yoki internetdan hech narsa so'ralmaydi, faqat aniq matematika.
+function calculateCalories(){
+  let bmr;
+  if(gender === 'male'){
+    bmr = 10*curWeight + 6.25*height - 5*age + 5;
+  } else {
+    bmr = 10*curWeight + 6.25*height - 5*age - 161;
+  }
+  const activityFactor = 1.375; // o'rtacha faollik (haftada 1-3 marta yengil mashq)
+  const tdee = bmr * activityFactor;
+
+  let target;
+  if(goal === 'lose'){
+    target = tdee - 500; // haftasiga ~0.5 kg ozish uchun xavfsiz defitsit
+  } else {
+    target = tdee + 500; // haftasiga ~0.5 kg semirish uchun ortiqcha kaloriya
+  }
+  return Math.round(target / 10) * 10;
+}
+
+function renderPlanList(containerId, items){
+  const el = document.getElementById(containerId);
+  el.innerHTML = '';
+  items.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'plan-item' + (goal === 'gain' ? ' gain' : '');
+    div.innerHTML =
+      '<div class="pi-icon">' + item.icon + '</div>' +
+      '<div class="pi-txt"><strong>' + item.title + '</strong><span>' + item.sub + '</span></div>';
+    el.appendChild(div);
+  });
+}
+
 function finish(){
-  document.getElementById('sumName').textContent = state.name || '—';
-  document.getElementById('sumGoal').textContent = goal === 'lose' ? 'Ozish' : 'Semirish';
-  document.getElementById('sumCur').textContent = curWeight + ' kg';
-  document.getElementById('sumTgt').textContent = tgtWeight + ' kg';
+  const calories = calculateCalories();
 
-  const diff = tgtWeight - curWeight;
-  const diffEl = document.getElementById('summaryDiff');
-  diffEl.textContent = (diff > 0 ? '+' : '') + diff + ' kg';
-  diffEl.style.color = goal === 'lose' ? 'var(--lime)' : 'var(--amber)';
-
-  document.getElementById('summarySub').textContent =
+  document.getElementById('calorieVal').textContent = calories;
+  document.getElementById('calorieSub').textContent =
     goal === 'lose'
-      ? state.name + ', sizga mos ozish dasturini tayyorladik.'
-      : state.name + ', sizga mos semirish dasturini tayyorladik.';
+      ? 'Ozish uchun tavsiya etilgan kunlik me\u02bcyor'
+      : 'Semirish uchun tavsiya etilgan kunlik me\u02bcyor';
+  document.getElementById('calorieCard').classList.toggle('gain', goal === 'gain');
 
-  showStep(7);
+  document.getElementById('resultsTitle').textContent =
+    (state.name ? state.name + ', tabriklaymiz!' : 'Tabriklaymiz!');
+
+  // Taxminiy muddat — haftasiga ~0.5 kg xavfsiz sur'at bilan
+  const diffKg = Math.abs(tgtWeight - curWeight);
+  const weeks = Math.max(1, Math.round(diffKg / 0.5));
+  document.getElementById('timelineTitle').textContent =
+    goal === 'lose' ? 'Ozish muddati' : 'Semirish muddati';
+  document.getElementById('timelineBody').innerHTML =
+    'Xavfsiz sur\u02bcatda (haftasiga ~0.5 kg), <b>' + diffKg + ' kg</b> ' +
+    (goal === 'lose' ? 'ozish' : 'semirish') + ' uchun taxminan <b>' + weeks + ' hafta</b> kerak bo\u02bcladi.';
+
+  // Kunlik maslahat
+  const adviceEl = document.getElementById('adviceBody');
+  if(goal === 'lose'){
+    adviceEl.innerHTML =
+      'Har kuni kamida <b>4-5 km</b> yuring (yoki qadamlar bilan hisoblasangiz ~6000-7000 qadam). ' +
+      'Bundan tashqari, har kuni ertalab <b>1-2 km</b> yengil yugurish yoki tez yurish qo\u02bcshimcha yordam beradi.';
+  } else {
+    adviceEl.innerHTML =
+      'Kuch mashqlarini haftada <b>3-4 marta</b> bajaring, mashqlar orasida tanaga tiklanish uchun dam bering. ' +
+      'Ovqatni kichik porsiyalarda, kuniga <b>4-5 mahal</b> yeyish yordam beradi.';
+  }
+
+  // Parhez — ishonchli manbalar asosida (kun.uz, yuz.uz, medall.uz)
+  const avoidEl = document.getElementById('avoidTags');
+  const goodEl = document.getElementById('goodTags');
+  avoidEl.innerHTML = '';
+  goodEl.innerHTML = '';
+  const avoidList = ['Chips', 'Gazli ichimliklar', 'Fastfud', 'Un mahsulotlari', 'Qovurilgan taomlar', 'Ortiqcha shirinlik'];
+  const goodList = goal === 'lose'
+    ? ['Sabzavotlar', 'Mevalar', 'Tovuq ko\u02bckragi', 'Baliq', 'Dukkaklilar', 'Tuxum']
+    : ['Guruch', 'Mol go\u02bcshti', 'Yong\u02bcoq', 'Sut mahsulotlari', 'Tuxum', 'Non'];
+  avoidList.forEach(t => { const s=document.createElement('span'); s.className='tag bad'; s.textContent=t; avoidEl.appendChild(s); });
+  goodList.forEach(t => { const s=document.createElement('span'); s.className='tag'; s.textContent=t; goodEl.appendChild(s); });
+
+  renderPlanList('exerciseList', EXERCISES[goal]);
+  renderPlanList('mealList', MEALS[goal]);
+
+  showStep(10);
+}
+
+// Ovqat rasmidan kaloriya aniqlash — Cloudflare Worker orqali Gemini AI'ga jo'natadi
+function handleFoodPhoto(event){
+  const file = event.target.files[0];
+  if(!file) return;
+
+  const resultEl = document.getElementById('photoResult');
+  const btnEl = document.getElementById('photoBtn');
+  btnEl.disabled = true;
+  btnEl.textContent = 'Tahlil qilinmoqda...';
+  resultEl.classList.remove('show');
+
+  const reader = new FileReader();
+  reader.onload = function(){
+    const dataUrl = reader.result;
+    const base64 = dataUrl.split(',')[1];
+    const mimeType = file.type || 'image/jpeg';
+
+    fetch(CALORIE_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image: base64, mimeType: mimeType })
+    })
+    .then(r => r.json())
+    .then(data => {
+      btnEl.disabled = false;
+      btnEl.textContent = 'Yana rasmga olish';
+      resultEl.innerHTML =
+        '<img src="' + dataUrl + '">' +
+        '<div class="pr-name">' + (data.taom || 'Aniqlanmadi') + '</div>' +
+        '<div class="pr-cal">' + (data.kaloriya != null ? data.kaloriya + ' kkal' : '—') + '</div>' +
+        '<div class="pr-note">' + (data.izoh || '') + '</div>';
+      resultEl.classList.add('show');
+    })
+    .catch(err => {
+      btnEl.disabled = false;
+      btnEl.textContent = 'Qayta urinib ko\u02bcring';
+      resultEl.innerHTML = '<div class="pr-note">Xatolik yuz berdi: ' + err.message + '</div>';
+      resultEl.classList.add('show');
+    });
+  };
+  reader.readAsDataURL(file);
 }
 
 function restart(){
-  step = 0; goal = null; curWeight = 65; tgtWeight = 60;
+  step = 0; goal = null; gender = null; age = 25; height = 165; curWeight = 65; tgtWeight = 60;
   state.name=''; state.phone='';
   document.getElementById('nameInput').value='';
   document.getElementById('phoneInput').value='';
   document.getElementById('nameBtn').disabled = true;
   document.getElementById('phoneBtn').disabled = true;
   document.getElementById('goalBtn').disabled = true;
+  document.getElementById('genderBtn').disabled = true;
   document.getElementById('loseCard').classList.remove('selected');
   document.getElementById('gainCard').classList.remove('selected');
+  document.getElementById('genderMaleCard').classList.remove('selected');
+  document.getElementById('genderFemaleCard').classList.remove('selected');
+  document.getElementById('ageVal').textContent = age;
+  document.getElementById('heightVal').textContent = height;
+  document.getElementById('photoResult').classList.remove('show');
   showStep(0);
 }
 
-renderRuler('cur'); renderRuler('tgt');
+renderRuler('cur'); renderRuler('tgt'); renderRuler('age'); renderRuler('height');
 updateWeightDisplay();
 renderProgress();
 

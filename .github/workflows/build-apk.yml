@@ -49,6 +49,7 @@ jobs:
       - name: Build APK
         env:
           BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
           BUBBLEWRAP_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           printf 'y\n1.0.0\ny\n1.0.0\n\n\n\n\n\n\n\n\n\n\n' | bubblewrap build --skipPwaValidation --skipVersionUpgrade

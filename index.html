@@ -513,6 +513,85 @@
     border-color:rgba(255,107,107,0.25);
   }
 
+  /* Accordion (parhez kartasi) */
+  .accordion-head{
+    cursor:pointer;
+    justify-content:space-between;
+    margin-bottom:0;
+  }
+  .accordion-arrow{
+    color:var(--muted);
+    font-size:14px;
+    transition:transform .25s ease;
+    flex-shrink:0;
+  }
+  .accordion-arrow.open{ transform:rotate(180deg); }
+  .accordion-body{
+    max-height:0;
+    overflow:hidden;
+    transition:max-height .3s ease, margin-top .3s ease;
+    margin-top:0;
+  }
+  .accordion-body.open{
+    max-height:400px;
+    margin-top:12px;
+  }
+
+  /* Bildirishnoma kartasi */
+  .notif-card{
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:16px 18px;
+    margin-bottom:14px;
+  }
+  .notif-head{
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .notif-icon{ font-size:20px; flex-shrink:0; }
+  .notif-txt{ flex:1; min-width:0; }
+  .notif-txt strong{ display:block; font-size:14px; font-weight:600; }
+  .notif-txt span{ font-size:11.5px; color:var(--muted); }
+
+  .switch{ position:relative; display:inline-block; width:44px; height:26px; flex-shrink:0; }
+  .switch.small{ width:38px; height:22px; }
+  .switch input{ opacity:0; width:0; height:0; }
+  .switch .slider{
+    position:absolute; cursor:pointer; inset:0;
+    background:var(--line);
+    border-radius:100px;
+    transition:.2s;
+  }
+  .switch .slider::before{
+    content:'';
+    position:absolute;
+    height:20px; width:20px;
+    left:3px; bottom:3px;
+    background:white;
+    border-radius:50%;
+    transition:.2s;
+  }
+  .switch.small .slider::before{ height:16px; width:16px; }
+  .switch input:checked + .slider{ background:var(--lime); }
+  .switch input:checked + .slider::before{ transform:translateX(18px); }
+  .switch.small input:checked + .slider::before{ transform:translateX(16px); }
+
+  .notif-settings{
+    max-height:0;
+    overflow:hidden;
+    transition:max-height .25s ease, margin-top .25s ease;
+    margin-top:0;
+  }
+  .notif-settings.open{ max-height:80px; margin-top:14px; padding-top:14px; border-top:1px solid var(--line); }
+  .notif-sound-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    font-size:13px;
+  }
+
   /* Schedule list */
   .sched-item{
     display:flex;
@@ -777,9 +856,35 @@
         <div class="section-label">Kunlik jadval</div>
         <div class="plan-list" id="scheduleList" style="margin-bottom:18px;"></div>
 
-        <div class="info-card">
-          <div class="ic-title">🥗 Parhez qoidalari</div>
-          <div class="ic-body">
+        <div class="notif-card" id="notifCard">
+          <div class="notif-head">
+            <div class="notif-icon">🔔</div>
+            <div class="notif-txt">
+              <strong>Bildirishnomalar</strong>
+              <span id="notifStatusText">Jadval vaqti kelganda xabar bering</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="notifToggle" onchange="onNotifToggle()">
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="notif-settings" id="notifSettings">
+            <div class="notif-sound-row">
+              <span>🔊 Ovozli bildirishnoma</span>
+              <label class="switch small">
+                <input type="checkbox" id="soundToggle" checked onchange="onSoundToggle()">
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-card" id="dietCard">
+          <div class="ic-title accordion-head" onclick="toggleDiet()">
+            <span>🥗 Nima yeyish mumkin, nima mumkin emas?</span>
+            <span class="accordion-arrow" id="dietArrow">▾</span>
+          </div>
+          <div class="ic-body accordion-body" id="dietBody">
             <b>Cheklang:</b>
             <div class="tag-row" id="avoidTags"></div>
             <div style="margin-top:12px;"><b>Ko'proq iste'mol qiling:</b></div>
@@ -894,6 +999,114 @@ function renderSchedule(){
       '<div class="si-txt"><strong>' + item.title + '</strong><span>' + item.sub + '</span></div>';
     el.appendChild(div);
   });
+}
+
+function toggleDiet(){
+  document.getElementById('dietBody').classList.toggle('open');
+  document.getElementById('dietArrow').classList.toggle('open');
+}
+
+// ============================================================
+// PUSH-BILDIRISHNOMALAR
+// ============================================================
+const VAPID_PUBLIC_KEY = 'BI8wACn6SNYdjz9mn4Tc12q_oiEtDJivqcqPj8S5tX-MdRxBXP4W8EFdLS-2oFukPSbO3tAVFZOGBj5SBLe5PeU';
+
+function urlBase64ToUint8Array(base64String){
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) outputArray[i] = rawData.charCodeAt(i);
+  return outputArray;
+}
+
+function initNotifSettings(){
+  const enabled = localStorage.getItem('forma_notif_enabled') === 'true';
+  const sound = localStorage.getItem('forma_notif_sound') !== 'false';
+  document.getElementById('notifToggle').checked = enabled;
+  document.getElementById('soundToggle').checked = sound;
+  document.getElementById('notifSettings').classList.toggle('open', enabled);
+  updateNotifStatusText(enabled);
+}
+
+function updateNotifStatusText(enabled){
+  document.getElementById('notifStatusText').textContent =
+    enabled ? 'Yoqilgan — jadval vaqtida xabar keladi' : "Jadval vaqti kelganda xabar bering";
+}
+
+async function onNotifToggle(){
+  const checked = document.getElementById('notifToggle').checked;
+  document.getElementById('notifSettings').classList.toggle('open', checked);
+
+  if(checked){
+    if(!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)){
+      alert("Kechirasiz, bu qurilma/brauzer bildirishnomani qo\u02bcllab-quvvatlamaydi.");
+      document.getElementById('notifToggle').checked = false;
+      return;
+    }
+    const permission = await Notification.requestPermission();
+    if(permission !== 'granted'){
+      alert("Bildirishnoma uchun ruxsat berilmadi. Sozlamalardan qayta yoqishingiz mumkin.");
+      document.getElementById('notifToggle').checked = false;
+      document.getElementById('notifSettings').classList.remove('open');
+      return;
+    }
+    try{
+      const reg = await navigator.serviceWorker.ready;
+      let sub = await reg.pushManager.getSubscription();
+      if(!sub){
+        sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+        });
+      }
+      const soundOn = document.getElementById('soundToggle').checked;
+      await fetch(CALORIE_API_URL + '/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subscription: sub, goal: goal || 'lose', sound: soundOn })
+      });
+      localStorage.setItem('forma_notif_enabled', 'true');
+      updateNotifStatusText(true);
+    } catch(err){
+      alert("Xatolik: " + err.message);
+      document.getElementById('notifToggle').checked = false;
+      document.getElementById('notifSettings').classList.remove('open');
+    }
+  } else {
+    localStorage.setItem('forma_notif_enabled', 'false');
+    updateNotifStatusText(false);
+    try{
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.getSubscription();
+      if(sub){
+        await fetch(CALORIE_API_URL + '/unsubscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ endpoint: sub.endpoint })
+        });
+        await sub.unsubscribe();
+      }
+    } catch(err){ /* jim tinchgina o'tkazamiz */ }
+  }
+}
+
+async function onSoundToggle(){
+  const soundOn = document.getElementById('soundToggle').checked;
+  localStorage.setItem('forma_notif_sound', soundOn ? 'true' : 'false');
+  if(document.getElementById('notifToggle').checked){
+    try{
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.getSubscription();
+      if(sub){
+        await fetch(CALORIE_API_URL + '/subscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ subscription: sub, goal: goal || 'lose', sound: soundOn })
+        });
+      }
+    } catch(err){ /* jim tinchgina o'tkazamiz */ }
+  }
 }
 
 // progress dots only represent steps 1..9 (name -> target weight)
@@ -1105,6 +1318,7 @@ function finish(){
   renderPlanList('exerciseList', EXERCISES[goal]);
   renderPlanList('mealList', MEALS[goal]);
   renderSchedule();
+  initNotifSettings();
 
   showStep(10);
 }

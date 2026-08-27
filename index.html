@@ -1132,11 +1132,18 @@ function handleFoodPhoto(event){
       body: JSON.stringify({ image: base64, mimeType: 'image/jpeg' })
     })
     .then(function(r){
-      if(!r.ok){ throw new Error('Server javobi: ' + r.status); }
-      return r.json();
+      return r.json().then(function(data){ return { ok: r.ok, status: r.status, data: data }; });
     })
-    .then(function(data){
+    .then(function(res){
       btnEl.disabled = false;
+      if(!res.ok){
+        btnEl.textContent = 'Qayta urinib ko\u02bcring';
+        const detailsText = res.data.details ? JSON.stringify(res.data.details).slice(0, 300) : (res.data.error || '');
+        resultEl.innerHTML = '<div class="pr-note">Xatolik (' + res.status + '): ' + detailsText + '</div>';
+        resultEl.classList.add('show');
+        return;
+      }
+      const data = res.data;
       btnEl.textContent = 'Yana rasmga olish';
       resultEl.innerHTML =
         '<img src="' + dataUrl + '">' +

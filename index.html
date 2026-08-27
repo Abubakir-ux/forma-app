@@ -513,6 +513,30 @@
     border-color:rgba(255,107,107,0.25);
   }
 
+  /* Schedule list */
+  .sched-item{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:12px 14px;
+    margin-bottom:8px;
+  }
+  .sched-time{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:700;
+    font-size:14px;
+    color:var(--lime);
+    min-width:52px;
+    flex-shrink:0;
+  }
+  .sched-item.gain .sched-time{ color:var(--amber); }
+  .sched-item .si-icon{ font-size:17px; flex-shrink:0; }
+  .sched-item .si-txt strong{ display:block; font-size:13.5px; font-weight:600; }
+  .sched-item .si-txt span{ font-size:11.5px; color:var(--muted); }
+
   /* Food photo tool */
   .photo-tool{
     background:linear-gradient(135deg, rgba(255,178,91,0.14), rgba(255,178,91,0.02));
@@ -750,6 +774,9 @@
           <div class="ic-body" id="adviceBody">—</div>
         </div>
 
+        <div class="section-label">Kunlik jadval</div>
+        <div class="plan-list" id="scheduleList" style="margin-bottom:18px;"></div>
+
         <div class="info-card">
           <div class="ic-title">🥗 Parhez qoidalari</div>
           <div class="ic-body">
@@ -834,6 +861,40 @@ const MEALS = {
     {icon:'🥛', title:'Sut-banan smoothie', sub:'~350 kkal'}
   ]
 };
+
+// Kunlik jadval — maqsadga qarab tavsiya etilgan vaqtlar
+const SCHEDULE = {
+  lose: [
+    {time:'07:00', icon:'🏃', title:'Ertalabki yugurish/tez yurish', sub:'1-2 km'},
+    {time:'08:00', icon:'🍳', title:'Nonushta', sub:'Yengil, oqsilga boy'},
+    {time:'13:00', icon:'🥗', title:'Tushlik', sub:'Sabzavot + oqsil'},
+    {time:'16:30', icon:'🚶', title:'Kunduzgi yurish', sub:'2-3 km'},
+    {time:'19:30', icon:'🍲', title:'Kechki ovqat', sub:"Yengil, kech yemang"},
+    {time:'21:00', icon:'💧', title:'Suv ichish, dam olish', sub:"Uyqudan oldin og'ir ovqat yo'q"}
+  ],
+  gain: [
+    {time:'08:00', icon:'🍳', title:'Nonushta', sub:"To'yimli, kaloriyaga boy"},
+    {time:'11:00', icon:'🥜', title:"Oraliq ovqat", sub:'Yong\u02bcoq, smoothie'},
+    {time:'14:00', icon:'🍚', title:'Tushlik', sub:"Katta porsiya"},
+    {time:'17:30', icon:'🏋️', title:'Kuch mashqlari', sub:'45-60 daqiqa'},
+    {time:'19:00', icon:'🍗', title:'Mashqdan keyingi ovqat', sub:"Oqsilga boy"},
+    {time:'21:30', icon:'🥛', title:'Kechki gazak', sub:'Sut, tvorog'}
+  ]
+};
+
+function renderSchedule(){
+  const el = document.getElementById('scheduleList');
+  el.innerHTML = '';
+  SCHEDULE[goal].forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'sched-item' + (goal === 'gain' ? ' gain' : '');
+    div.innerHTML =
+      '<div class="sched-time">' + item.time + '</div>' +
+      '<div class="si-icon">' + item.icon + '</div>' +
+      '<div class="si-txt"><strong>' + item.title + '</strong><span>' + item.sub + '</span></div>';
+    el.appendChild(div);
+  });
+}
 
 // progress dots only represent steps 1..9 (name -> target weight)
 const SEG_START = 1, SEG_END = 9;
@@ -1043,6 +1104,7 @@ function finish(){
 
   renderPlanList('exerciseList', EXERCISES[goal]);
   renderPlanList('mealList', MEALS[goal]);
+  renderSchedule();
 
   showStep(10);
 }
@@ -1058,19 +1120,22 @@ function handleFoodPhoto(event){
   btnEl.textContent = 'Tahlil qilinmoqda...';
   resultEl.classList.remove('show');
 
-  const reader = new FileReader();
-  reader.onload = function(){
-    const dataUrl = reader.result;
+  // Rasmni avval kichraytiramiz (telefon kamerasi rasmlari juda katta bo'ladi,
+  // sekin internetda yuborilmay qolishi mumkin)
+  compressImage(file, 800, 0.7).then(function(compressed){
+    const dataUrl = compressed.dataUrl;
     const base64 = dataUrl.split(',')[1];
-    const mimeType = file.type || 'image/jpeg';
 
     fetch(CALORIE_API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ image: base64, mimeType: mimeType })
+      body: JSON.stringify({ image: base64, mimeType: 'image/jpeg' })
     })
-    .then(r => r.json())
-    .then(data => {
+    .then(function(r){
+      if(!r.ok){ throw new Error('Server javobi: ' + r.status); }
+      return r.json();
+    })
+    .then(function(data){
       btnEl.disabled = false;
       btnEl.textContent = 'Yana rasmga olish';
       resultEl.innerHTML =
@@ -1080,14 +1145,49 @@ function handleFoodPhoto(event){
         '<div class="pr-note">' + (data.izoh || '') + '</div>';
       resultEl.classList.add('show');
     })
-    .catch(err => {
+    .catch(function(err){
       btnEl.disabled = false;
       btnEl.textContent = 'Qayta urinib ko\u02bcring';
-      resultEl.innerHTML = '<div class="pr-note">Xatolik yuz berdi: ' + err.message + '</div>';
+      resultEl.innerHTML = '<div class="pr-note">Xatolik yuz berdi: ' + err.message + '. Internetni tekshirib, qayta urinib ko\u02bcring.</div>';
       resultEl.classList.add('show');
     });
-  };
-  reader.readAsDataURL(file);
+  }).catch(function(err){
+    btnEl.disabled = false;
+    btnEl.textContent = 'Qayta urinib ko\u02bcring';
+    resultEl.innerHTML = '<div class="pr-note">Rasmni qayta ishlashda xatolik: ' + err.message + '</div>';
+    resultEl.classList.add('show');
+  });
+}
+
+// Rasmni canvas orqali kichraytirib, JPEG formatida siqib beradi
+function compressImage(file, maxDimension, quality){
+  return new Promise(function(resolve, reject){
+    const img = new Image();
+    const reader = new FileReader();
+    reader.onload = function(){
+      img.onload = function(){
+        let w = img.width, h = img.height;
+        if(w > h && w > maxDimension){
+          h = Math.round(h * (maxDimension / w));
+          w = maxDimension;
+        } else if(h > maxDimension){
+          w = Math.round(w * (maxDimension / h));
+          h = maxDimension;
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        const dataUrl = canvas.toDataURL('image/jpeg', quality);
+        resolve({ dataUrl: dataUrl });
+      };
+      img.onerror = function(){ reject(new Error('Rasmni o\u02bcqib bo\u02bclmadi')); };
+      img.src = reader.result;
+    };
+    reader.onerror = function(){ reject(new Error('Faylni o\u02bcqib bo\u02bclmadi')); };
+    reader.readAsDataURL(file);
+  });
 }
 
 function restart(){

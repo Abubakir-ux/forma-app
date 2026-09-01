@@ -435,16 +435,17 @@
   .calorie-label{ font-size:13px; color:var(--muted); margin-bottom:8px; }
   .calorie-value{
     font-family:'Space Grotesk', sans-serif;
-    font-size:42px;
+    font-size:32px;
     font-weight:700;
     color:var(--lime);
     display:flex;
-    align-items:baseline;
+    flex-direction:column;
+    align-items:center;
     justify-content:center;
-    gap:8px;
+    gap:0;
   }
   .calorie-card.gain .calorie-value{ color:var(--amber); }
-  .calorie-value .calorie-unit{ font-size:15px; color:var(--muted); font-weight:500; }
+  .calorie-value .calorie-unit{ font-size:12px; color:var(--muted); font-weight:500; }
   .calorie-sub{ font-size:12px; color:var(--muted); margin-top:8px; }
 
   .section-label{
@@ -560,6 +561,12 @@
     transform:translateY(0) perspective(300px) rotateX(0deg);
     transition: transform .12s ease, box-shadow .12s ease;
     -webkit-tap-highlight-color:transparent;
+    opacity:0;
+    animation: tilePopIn .4s ease forwards;
+  }
+  @keyframes tilePopIn{
+    from{ opacity:0; transform:translateY(14px) scale(.92) perspective(300px) rotateX(0deg); }
+    to{ opacity:1; transform:translateY(0) scale(1) perspective(300px) rotateX(0deg); }
   }
   .tile:active{
     transform:translateY(5px) perspective(300px) rotateX(6deg);
@@ -567,7 +574,7 @@
       0 0px 0 rgba(0,0,0,0.35),
       0 2px 6px rgba(0,0,0,0.2);
   }
-  .tile .tile-icon{ font-size:24px; }
+  .tile .tile-icon{ font-size:24px; filter:drop-shadow(0 2px 3px rgba(0,0,0,0.3)); }
   .tile .tile-label{ font-size:11.5px; font-weight:600; text-align:center; line-height:1.25; }
   .tile.amber{
     background:linear-gradient(160deg, #3A2B1B, #2A1F14);
@@ -581,6 +588,72 @@
       0 0px 0 rgba(120,70,10,0.5),
       0 2px 6px rgba(0,0,0,0.2);
   }
+
+  /* Kaloriya halqasi (SVG, animatsion) */
+  .calorie-ring-wrap{
+    position:relative;
+    width:140px; height:140px;
+    margin:4px auto 10px auto;
+  }
+  .calorie-ring{ width:100%; height:100%; transform:rotate(-90deg); filter:drop-shadow(0 4px 14px rgba(198,255,107,0.25)); }
+  .ring-bg{ fill:none; stroke:rgba(234,245,239,0.08); stroke-width:8; }
+  .ring-fg{
+    fill:none;
+    stroke:var(--lime);
+    stroke-width:8;
+    stroke-linecap:round;
+    stroke-dasharray:389.6;
+    stroke-dashoffset:389.6;
+    animation: ringFill 1.4s cubic-bezier(.2,.8,.2,1) forwards .2s;
+  }
+  .calorie-card.gain .ring-fg{ stroke:var(--amber); }
+  @keyframes ringFill{ to{ stroke-dashoffset:70; } }
+  .calorie-ring-content{
+    position:absolute;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+
+  /* Vazn kuzatuvi progress-bar */
+  .progress-bar-wrap{ margin:16px 0 20px 0; }
+  .progress-bar-track{
+    height:14px;
+    background:var(--surface-2);
+    border-radius:100px;
+    overflow:hidden;
+    border:1px solid var(--line);
+  }
+  .progress-bar-fill{
+    height:100%;
+    width:0%;
+    background:linear-gradient(90deg, var(--lime), #7ED957);
+    border-radius:100px;
+    transition:width 1s cubic-bezier(.2,.8,.2,1);
+    box-shadow:0 0 12px rgba(198,255,107,0.5);
+  }
+  .progress-bar-labels{
+    display:flex;
+    justify-content:space-between;
+    font-size:11.5px;
+    color:var(--muted);
+    margin-top:8px;
+  }
+  #progressPercentLabel{ color:var(--lime); font-weight:700; }
+  .weight-log-form{ display:flex; gap:8px; margin-bottom:14px; }
+  .weight-log-list{ display:flex; flex-direction:column; gap:6px; max-height:180px; overflow-y:auto; }
+  .weight-log-item{
+    display:flex;
+    justify-content:space-between;
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:9px 12px;
+    font-size:12.5px;
+  }
+  .weight-log-item .wl-date{ color:var(--muted); }
+  .weight-log-item .wl-weight{ font-weight:700; }
 
   /* Sheet panels ichida (bitta vaqtda faqat bittasi ko'rinadi) */
   .sheet-panel{ display:none; }
@@ -780,49 +853,116 @@
     color:var(--muted);
     font-size:14px;
   }
-  .pm-icon{ font-size:36px; text-align:center; margin-bottom:6px; }
-  .pm-title{ font-family:'Space Grotesk', sans-serif; font-size:22px; text-align:center; margin-bottom:6px; }
-  .pm-price{ text-align:center; font-family:'Space Grotesk', sans-serif; font-size:28px; font-weight:700; color:var(--lime); margin-bottom:18px; }
-  .pm-price span{ font-size:14px; color:var(--muted); font-weight:500; }
-  .pm-features{ list-style:none; padding:0; margin:0 0 22px 0; }
-  .pm-features li{ font-size:13.5px; padding:6px 0; color:var(--text); }
-  .pm-step{ display:flex; gap:12px; margin-bottom:16px; }
+  .pm-box{ padding-top:0; }
+  .pm-banner{
+    position:relative;
+    text-align:center;
+    padding:32px 24px 22px 24px;
+    margin:0 -24px 20px -24px;
+    border-radius:24px 24px 0 0;
+    background:radial-gradient(120% 100% at 50% 0%, rgba(198,255,107,0.16), transparent 70%), var(--surface);
+    overflow:hidden;
+  }
+  .pm-banner-glow{
+    position:absolute;
+    top:-60%; left:50%;
+    width:220px; height:220px;
+    transform:translateX(-50%);
+    background:conic-gradient(from 0deg, var(--lime), transparent 30%, transparent 70%, var(--lime));
+    opacity:.35;
+    filter:blur(30px);
+    animation: spinGlow 6s linear infinite;
+  }
+  @keyframes spinGlow{ to{ transform:translateX(-50%) rotate(360deg); } }
+  .pm-icon{
+    position:relative;
+    font-size:38px;
+    margin-bottom:8px;
+    display:inline-block;
+    animation: starPulse 2.2s ease-in-out infinite;
+  }
+  @keyframes starPulse{ 0%,100%{ transform:scale(1) rotate(0deg); } 50%{ transform:scale(1.12) rotate(6deg); } }
+  .pm-title{ position:relative; font-family:'Space Grotesk', sans-serif; font-size:22px; margin-bottom:10px; }
+  .pm-price{ position:relative; display:flex; align-items:baseline; justify-content:center; gap:6px; }
+  .pm-price-num{ font-family:'Space Grotesk', sans-serif; font-size:34px; font-weight:700; color:var(--lime); }
+  .pm-price-unit{ font-size:13px; color:var(--muted); font-weight:500; }
+
+  .pm-features{ display:flex; flex-direction:column; gap:8px; margin-bottom:22px; }
+  .pm-feature{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:11px 14px;
+    font-size:13.5px;
+    color:var(--text);
+  }
+  .pm-feature-ico{ font-size:17px; }
+
+  .pm-steps{ position:relative; }
+  .pm-step{ display:flex; gap:14px; margin-bottom:18px; position:relative; }
+  .pm-step:last-child{ margin-bottom:0; }
   .pm-step-num{
-    width:24px; height:24px;
+    width:26px; height:26px;
     border-radius:50%;
     background:var(--lime);
     color:#0D1F1A;
     font-weight:700;
-    font-size:12px;
+    font-size:12.5px;
     display:flex; align-items:center; justify-content:center;
     flex-shrink:0;
     margin-top:1px;
+    z-index:1;
+    box-shadow:0 0 0 4px var(--surface);
   }
-  .pm-step-txt{ font-size:13.5px; color:var(--muted); line-height:1.5; }
+  .pm-step-line{
+    position:absolute;
+    left:13px; top:26px;
+    width:2px; height:calc(100% + 2px);
+    background:linear-gradient(to bottom, var(--lime), transparent);
+    opacity:.3;
+  }
+  .pm-step-txt{ font-size:13.5px; color:var(--muted); line-height:1.5; padding-top:3px; }
   .pm-step-txt b{ color:var(--text); }
   .pm-card-number{
-    margin-top:8px;
-    background:var(--surface-2);
-    border:1px dashed var(--lime);
-    border-radius:10px;
-    padding:10px 12px;
+    margin-top:10px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    background:linear-gradient(135deg, rgba(198,255,107,0.1), var(--surface-2));
+    border:1.5px dashed var(--lime);
+    border-radius:12px;
+    padding:12px 14px;
+    cursor:pointer;
+    transition:transform .12s ease;
+  }
+  .pm-card-number:active{ transform:scale(.97); }
+  .pm-card-digits{
     font-family:'Space Grotesk', sans-serif;
     font-weight:700;
     font-size:15px;
     color:var(--text);
     letter-spacing:.02em;
-    cursor:pointer;
   }
-  .pm-card-number span{ font-size:10px; color:var(--muted); font-weight:400; display:block; margin-top:2px; }
+  .pm-copy-icon{ font-size:15px; flex-shrink:0; }
   .pm-telegram{
-    display:inline-block;
-    margin-top:8px;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    margin-top:10px;
+    background:rgba(198,255,107,0.1);
+    border:1px solid rgba(198,255,107,0.3);
+    padding:8px 14px;
+    border-radius:100px;
     color:var(--lime);
     font-weight:600;
     text-decoration:none;
-    font-size:13.5px;
+    font-size:13px;
   }
-  .pm-code-row{ display:flex; gap:8px; margin-top:8px; }
+  .pm-code-row{ display:flex; gap:8px; margin-top:20px; }
   .pm-code-input{
     flex:1;
     background:var(--surface-2);
@@ -838,6 +978,7 @@
   .pm-code-msg.error{ color:var(--danger); }
   .pm-code-msg.success{ color:var(--lime); }
 </style>
+
 </head>
 <body>
 
@@ -994,33 +1135,45 @@
       <h1 id="resultsTitle">Tabriklaymiz!</h1>
       <div class="results-scroll">
         <div class="calorie-card" id="calorieCard">
+          <div class="calorie-ring-wrap">
+            <svg class="calorie-ring" viewBox="0 0 140 140">
+              <circle class="ring-bg" cx="70" cy="70" r="62"></circle>
+              <circle class="ring-fg" id="calorieRingFg" cx="70" cy="70" r="62"></circle>
+            </svg>
+            <div class="calorie-ring-content">
+              <div class="calorie-value"><span id="calorieVal">1800</span><span class="calorie-unit">kkal</span></div>
+            </div>
+          </div>
           <div class="calorie-label">Kunlik kaloriya me'yori</div>
-          <div class="calorie-value"><span id="calorieVal">1800</span><span class="calorie-unit">kkal</span></div>
           <div class="calorie-sub" id="calorieSub">—</div>
         </div>
 
         <div class="tile-grid">
-          <div class="tile" onclick="openSheet('sheet-timeline')">
+          <div class="tile" onclick="openSheet('sheet-progress')" style="animation-delay:.02s">
+            <div class="tile-icon">📈</div>
+            <div class="tile-label">Vazn kuzatuvi</div>
+          </div>
+          <div class="tile" onclick="openSheet('sheet-timeline')" style="animation-delay:.06s">
             <div class="tile-icon">📅</div>
             <div class="tile-label">Muddat</div>
           </div>
-          <div class="tile" onclick="openSheet('sheet-advice')">
+          <div class="tile" onclick="openSheet('sheet-advice')" style="animation-delay:.10s">
             <div class="tile-icon">🚶</div>
             <div class="tile-label">Kunlik maslahat</div>
           </div>
-          <div class="tile" onclick="openSheet('sheet-schedule')">
+          <div class="tile" onclick="openSheet('sheet-schedule')" style="animation-delay:.14s">
             <div class="tile-icon">🗓️</div>
             <div class="tile-label">Kunlik jadval</div>
           </div>
-          <div class="tile" onclick="openSheet('sheet-diet')">
+          <div class="tile" onclick="openSheet('sheet-diet')" style="animation-delay:.18s">
             <div class="tile-icon">🥗</div>
             <div class="tile-label">Parhez</div>
           </div>
-          <div class="tile" onclick="openSheet('sheet-notif')">
+          <div class="tile" onclick="openSheet('sheet-notif')" style="animation-delay:.22s">
             <div class="tile-icon">🔔</div>
             <div class="tile-label">Bildirishnoma</div>
           </div>
-          <div class="tile amber" onclick="openSheet('sheet-photo')">
+          <div class="tile amber" onclick="openSheet('sheet-photo')" style="animation-delay:.26s">
             <div class="tile-icon">📸</div>
             <div class="tile-label">Ovqat-kaloriya</div>
           </div>
@@ -1049,6 +1202,25 @@
     <div class="modal-backdrop" id="sheetModal">
       <div class="modal-box">
         <div class="modal-close" onclick="closeSheetModal()">✕</div>
+
+        <div class="sheet-panel" id="sheet-progress">
+          <div class="ic-title">📈 Vazn kuzatuvi</div>
+          <div class="progress-bar-wrap">
+            <div class="progress-bar-track">
+              <div class="progress-bar-fill" id="progressBarFill"></div>
+            </div>
+            <div class="progress-bar-labels">
+              <span id="progressStartLabel">65 kg</span>
+              <span id="progressPercentLabel">0%</span>
+              <span id="progressTargetLabel">60 kg</span>
+            </div>
+          </div>
+          <div class="weight-log-form">
+            <input type="number" id="newWeightInput" placeholder="Bugungi vazningiz (kg)" class="pm-code-input" style="flex:1;">
+            <button class="btn btn-primary btn-small" onclick="logNewWeight()">Saqlash</button>
+          </div>
+          <div class="weight-log-list" id="weightLogList"></div>
+        </div>
 
         <div class="sheet-panel" id="sheet-timeline">
           <div class="ic-title">📅 <span id="timelineTitle">Taxminiy muddat</span></div>
@@ -1118,32 +1290,46 @@
 
     <!-- Premium modal -->
     <div class="modal-backdrop" id="premiumModal">
-      <div class="modal-box">
+      <div class="modal-box pm-box">
         <div class="modal-close" onclick="closePremiumModal()">✕</div>
-        <div class="pm-icon">⭐</div>
-        <h2 class="pm-title">Forma Premium</h2>
-        <div class="pm-price">5 000 <span>so'm / oy</span></div>
-        <ul class="pm-features">
-          <li>✅ Shaxsiy mashq va taom rejasi</li>
-          <li>✅ Cheksiz ovqat-kaloriya tahlili</li>
-          <li>✅ Reklamasiz foydalanish</li>
-        </ul>
-        <div class="pm-step">
-          <div class="pm-step-num">1</div>
-          <div class="pm-step-txt">Quyidagi kartaga <b>5 000 so'm</b> o'tkazing:
-            <div class="pm-card-number" onclick="copyCardNumber()">9860 0801 8162 4901 <span id="copyHint">(nusxalash uchun bosing)</span></div>
+
+        <div class="pm-banner">
+          <div class="pm-banner-glow"></div>
+          <div class="pm-icon">⭐</div>
+          <h2 class="pm-title">Forma Premium</h2>
+          <div class="pm-price"><span class="pm-price-num">5 000</span><span class="pm-price-unit">so'm / oy</span></div>
+        </div>
+
+        <div class="pm-features">
+          <div class="pm-feature"><span class="pm-feature-ico">🏋️</span> Shaxsiy mashq va taom rejasi</div>
+          <div class="pm-feature"><span class="pm-feature-ico">📸</span> Cheksiz ovqat-kaloriya tahlili</div>
+          <div class="pm-feature"><span class="pm-feature-ico">✨</span> Reklamasiz foydalanish</div>
+        </div>
+
+        <div class="pm-steps">
+          <div class="pm-step">
+            <div class="pm-step-num">1</div>
+            <div class="pm-step-line"></div>
+            <div class="pm-step-txt">Quyidagi kartaga <b>5 000 so'm</b> o'tkazing:
+              <div class="pm-card-number" onclick="copyCardNumber()">
+                <span class="pm-card-digits">9860 0801 8162 4901</span>
+                <span class="pm-copy-icon" id="copyHint">📋</span>
+              </div>
+            </div>
+          </div>
+          <div class="pm-step">
+            <div class="pm-step-num">2</div>
+            <div class="pm-step-line"></div>
+            <div class="pm-step-txt">To'lov chekini (skrinshot) shu botga yuboring:
+              <a href="https://t.me/formapremium_bot" target="_blank" class="pm-telegram">📩 @formapremium_bot</a>
+            </div>
+          </div>
+          <div class="pm-step">
+            <div class="pm-step-num">3</div>
+            <div class="pm-step-txt">Tasdiqlangach, <b>faollashtirish kodi</b> keladi — shu yerga kiriting:</div>
           </div>
         </div>
-        <div class="pm-step">
-          <div class="pm-step-num">2</div>
-          <div class="pm-step-txt">To'lov chekini (skrinshot) shu Telegram'ga yuboring:
-            <a href="https://t.me/formapremium_bot" target="_blank" class="pm-telegram">📩 @formapremium_bot</a>
-          </div>
-        </div>
-        <div class="pm-step">
-          <div class="pm-step-num">3</div>
-          <div class="pm-step-txt">Tasdiqlangach, sizga <b>faollashtirish kodi</b> yuboriladi — shu yerga kiriting:</div>
-        </div>
+
         <div class="pm-code-row">
           <input type="text" id="premiumCodeInput" placeholder="Kodni kiriting" class="pm-code-input">
           <button class="btn btn-primary btn-small" onclick="activatePremium()" id="activateBtn">Faollashtirish</button>
@@ -1231,6 +1417,63 @@ function renderSchedule(){
       '<div class="si-txt"><strong>' + item.title + '</strong><span>' + item.sub + '</span></div>';
     el.appendChild(div);
   });
+}
+
+// ============================================================
+// VAZN KUZATUVI
+// ============================================================
+function getWeightLog(){
+  return JSON.parse(localStorage.getItem('forma_weight_log') || '[]');
+}
+
+function saveWeightLog(log){
+  localStorage.setItem('forma_weight_log', JSON.stringify(log));
+}
+
+function seedWeightLogIfEmpty(){
+  const log = getWeightLog();
+  if(log.length === 0){
+    saveWeightLog([{ date: new Date().toLocaleDateString('uz-UZ'), weight: curWeight }]);
+  }
+}
+
+function renderWeightProgress(){
+  const log = getWeightLog();
+  const latest = log.length ? log[log.length - 1].weight : curWeight;
+
+  document.getElementById('progressStartLabel').textContent = curWeight + ' kg';
+  document.getElementById('progressTargetLabel').textContent = tgtWeight + ' kg';
+
+  const totalDiff = Math.abs(tgtWeight - curWeight) || 1;
+  const doneDiff = goal === 'lose' ? (curWeight - latest) : (latest - curWeight);
+  let percent = Math.round((doneDiff / totalDiff) * 100);
+  percent = Math.max(0, Math.min(100, percent));
+
+  document.getElementById('progressBarFill').style.width = percent + '%';
+  document.getElementById('progressPercentLabel').textContent = percent + '%';
+
+  const listEl = document.getElementById('weightLogList');
+  listEl.innerHTML = '';
+  log.slice().reverse().forEach(function(entry){
+    const div = document.createElement('div');
+    div.className = 'weight-log-item';
+    div.innerHTML = '<span class="wl-date">' + entry.date + '</span><span class="wl-weight">' + entry.weight + ' kg</span>';
+    listEl.appendChild(div);
+  });
+}
+
+function logNewWeight(){
+  const input = document.getElementById('newWeightInput');
+  const val = parseFloat(input.value);
+  if(!val || val < 30 || val > 250){
+    alert("Iltimos, to\u02bcg\u02bcri vazn kiriting (30-250 kg oralig\u02bcida)");
+    return;
+  }
+  const log = getWeightLog();
+  log.push({ date: new Date().toLocaleDateString('uz-UZ'), weight: val });
+  saveWeightLog(log);
+  input.value = '';
+  renderWeightProgress();
 }
 
 function openSheet(id){
@@ -1369,10 +1612,9 @@ function closePremiumModal(){
 function copyCardNumber(){
   const text = '9860080181624901';
   navigator.clipboard.writeText(text).then(function(){
-    document.getElementById('copyHint').textContent = '(nusxalandi ✅)';
-    setTimeout(function(){
-      document.getElementById('copyHint').textContent = '(nusxalash uchun bosing)';
-    }, 2000);
+    const hint = document.getElementById('copyHint');
+    hint.textContent = '✅';
+    setTimeout(function(){ hint.textContent = '📋'; }, 2000);
   }).catch(function(){});
 }
 
@@ -1632,6 +1874,8 @@ function finish(){
   initNotifSettings();
   updatePhotoLimitText();
   applyPremiumUI();
+  seedWeightLogIfEmpty();
+  renderWeightProgress();
 
   showStep(10);
 }

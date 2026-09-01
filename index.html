@@ -537,6 +537,67 @@
     margin-top:12px;
   }
 
+  /* Tile grid — 3D bosiladigan tugmalar */
+  .tile-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:10px;
+    margin:20px 0;
+  }
+  .tile{
+    background:linear-gradient(160deg, #1E3B32, #16302A);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:16px 8px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:8px;
+    cursor:pointer;
+    box-shadow:
+      0 5px 0 rgba(0,0,0,0.35),
+      0 8px 14px rgba(0,0,0,0.25);
+    transform:translateY(0) perspective(300px) rotateX(0deg);
+    transition: transform .12s ease, box-shadow .12s ease;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .tile:active{
+    transform:translateY(5px) perspective(300px) rotateX(6deg);
+    box-shadow:
+      0 0px 0 rgba(0,0,0,0.35),
+      0 2px 6px rgba(0,0,0,0.2);
+  }
+  .tile .tile-icon{ font-size:24px; }
+  .tile .tile-label{ font-size:11.5px; font-weight:600; text-align:center; line-height:1.25; }
+  .tile.amber{
+    background:linear-gradient(160deg, #3A2B1B, #2A1F14);
+    border-color:rgba(255,178,91,0.28);
+    box-shadow:
+      0 5px 0 rgba(120,70,10,0.5),
+      0 8px 14px rgba(0,0,0,0.25);
+  }
+  .tile.amber:active{
+    box-shadow:
+      0 0px 0 rgba(120,70,10,0.5),
+      0 2px 6px rgba(0,0,0,0.2);
+  }
+
+  /* Sheet panels ichida (bitta vaqtda faqat bittasi ko'rinadi) */
+  .sheet-panel{ display:none; }
+  .sheet-panel.active{ display:block; animation:fadeIn .2s ease; }
+  @keyframes fadeIn{ from{ opacity:0; transform:translateY(6px); } to{ opacity:1; transform:translateY(0); } }
+  .sheet-panel .ic-title{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:17px;
+    font-weight:700;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-bottom:4px;
+  }
+  .sheet-panel .ic-body{ font-size:14px; color:var(--muted); line-height:1.6; margin-top:12px; }
+  .sheet-panel .ic-body b{ color:var(--text); }
+
   /* Bildirishnoma kartasi */
   .notif-card{
     background:var(--surface-2);
@@ -938,63 +999,31 @@
           <div class="calorie-sub" id="calorieSub">—</div>
         </div>
 
-        <div class="info-card">
-          <div class="ic-title">📅 <span id="timelineTitle">Taxminiy muddat</span></div>
-          <div class="ic-body" id="timelineBody">—</div>
-        </div>
-
-        <div class="info-card" id="adviceCard">
-          <div class="ic-title">🚶 Kunlik maslahat</div>
-          <div class="ic-body" id="adviceBody">—</div>
-        </div>
-
-        <div class="section-label">Kunlik jadval</div>
-        <div class="plan-list" id="scheduleList" style="margin-bottom:18px;"></div>
-
-        <div class="notif-card" id="notifCard">
-          <div class="notif-head">
-            <div class="notif-icon">🔔</div>
-            <div class="notif-txt">
-              <strong>Bildirishnomalar</strong>
-              <span id="notifStatusText">Jadval vaqti kelganda xabar bering</span>
-            </div>
-            <label class="switch">
-              <input type="checkbox" id="notifToggle" onchange="onNotifToggle()">
-              <span class="slider"></span>
-            </label>
+        <div class="tile-grid">
+          <div class="tile" onclick="openSheet('sheet-timeline')">
+            <div class="tile-icon">📅</div>
+            <div class="tile-label">Muddat</div>
           </div>
-          <div class="notif-settings" id="notifSettings">
-            <div class="notif-sound-row">
-              <span>🔊 Ovozli bildirishnoma</span>
-              <label class="switch small">
-                <input type="checkbox" id="soundToggle" checked onchange="onSoundToggle()">
-                <span class="slider"></span>
-              </label>
-            </div>
+          <div class="tile" onclick="openSheet('sheet-advice')">
+            <div class="tile-icon">🚶</div>
+            <div class="tile-label">Kunlik maslahat</div>
           </div>
-        </div>
-
-        <div class="info-card" id="dietCard">
-          <div class="ic-title accordion-head" onclick="toggleDiet()">
-            <span>🥗 Nima yeyish mumkin, nima mumkin emas?</span>
-            <span class="accordion-arrow" id="dietArrow">▾</span>
+          <div class="tile" onclick="openSheet('sheet-schedule')">
+            <div class="tile-icon">🗓️</div>
+            <div class="tile-label">Kunlik jadval</div>
           </div>
-          <div class="ic-body accordion-body" id="dietBody">
-            <b>Cheklang:</b>
-            <div class="tag-row" id="avoidTags"></div>
-            <div style="margin-top:12px;"><b>Ko'proq iste'mol qiling:</b></div>
-            <div class="tag-row" id="goodTags"></div>
+          <div class="tile" onclick="openSheet('sheet-diet')">
+            <div class="tile-icon">🥗</div>
+            <div class="tile-label">Parhez</div>
           </div>
-        </div>
-
-        <div class="photo-tool">
-          <div class="pt-icon">📸</div>
-          <div class="pt-title">Ovqat kaloriyasini bilish</div>
-          <div class="pt-sub">Taomingiz rasmini oling — AI kaloriyasini taxmin qilib beradi</div>
-          <div class="pt-limit" id="photoLimitText">—</div>
-          <input type="file" id="foodPhotoInput" accept="image/*" capture="environment" style="display:none" onchange="handleFoodPhoto(event)">
-          <button class="btn btn-amber" onclick="document.getElementById('foodPhotoInput').click()" id="photoBtn">Rasmga olish / tanlash</button>
-          <div class="photo-result" id="photoResult"></div>
+          <div class="tile" onclick="openSheet('sheet-notif')">
+            <div class="tile-icon">🔔</div>
+            <div class="tile-label">Bildirishnoma</div>
+          </div>
+          <div class="tile amber" onclick="openSheet('sheet-photo')">
+            <div class="tile-icon">📸</div>
+            <div class="tile-label">Ovqat-kaloriya</div>
+          </div>
         </div>
 
         <div class="section-label">Shaxsiy mashq va taom rejasi</div>
@@ -1014,6 +1043,77 @@
         <div class="hint" style="margin:18px 0 4px 0;">Bu — <b>onboarding demo</b>. Haqiqiy ilovada mashq/taom bazasi kengroq bo'ladi.</div>
       </div>
       <button class="btn btn-primary" onclick="restart()">Ilovaga o'tish</button>
+    </div>
+
+    <!-- Universal bottom-sheet (Muddat/Maslahat/Jadval/Parhez/Bildirishnoma/Foto) -->
+    <div class="modal-backdrop" id="sheetModal">
+      <div class="modal-box">
+        <div class="modal-close" onclick="closeSheetModal()">✕</div>
+
+        <div class="sheet-panel" id="sheet-timeline">
+          <div class="ic-title">📅 <span id="timelineTitle">Taxminiy muddat</span></div>
+          <div class="ic-body" id="timelineBody">—</div>
+        </div>
+
+        <div class="sheet-panel" id="sheet-advice">
+          <div class="ic-title">🚶 Kunlik maslahat</div>
+          <div class="ic-body" id="adviceBody">—</div>
+        </div>
+
+        <div class="sheet-panel" id="sheet-schedule">
+          <div class="ic-title">🗓️ Kunlik jadval</div>
+          <div class="plan-list" id="scheduleList" style="margin-top:14px;"></div>
+        </div>
+
+        <div class="sheet-panel" id="sheet-diet">
+          <div class="ic-title">🥗 Nima yeyish mumkin, nima mumkin emas?</div>
+          <div class="ic-body">
+            <b>Cheklang:</b>
+            <div class="tag-row" id="avoidTags"></div>
+            <div style="margin-top:12px;"><b>Ko'proq iste'mol qiling:</b></div>
+            <div class="tag-row" id="goodTags"></div>
+          </div>
+        </div>
+
+        <div class="sheet-panel" id="sheet-notif">
+          <div class="ic-title">🔔 Bildirishnomalar</div>
+          <div class="notif-card" id="notifCard" style="margin-top:14px;">
+            <div class="notif-head">
+              <div class="notif-icon">🔔</div>
+              <div class="notif-txt">
+                <strong>Bildirishnomalar</strong>
+                <span id="notifStatusText">Jadval vaqti kelganda xabar bering</span>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="notifToggle" onchange="onNotifToggle()">
+                <span class="slider"></span>
+              </label>
+            </div>
+            <div class="notif-settings" id="notifSettings">
+              <div class="notif-sound-row">
+                <span>🔊 Ovozli bildirishnoma</span>
+                <label class="switch small">
+                  <input type="checkbox" id="soundToggle" checked onchange="onSoundToggle()">
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sheet-panel" id="sheet-photo">
+          <div class="photo-tool" style="margin:0;">
+            <div class="pt-icon">📸</div>
+            <div class="pt-title">Ovqat kaloriyasini bilish</div>
+            <div class="pt-sub">Taomingiz rasmini oling — AI kaloriyasini taxmin qilib beradi</div>
+            <div class="pt-limit" id="photoLimitText">—</div>
+            <input type="file" id="foodPhotoInput" accept="image/*" capture="environment" style="display:none" onchange="handleFoodPhoto(event)">
+            <button class="btn btn-amber" onclick="document.getElementById('foodPhotoInput').click()" id="photoBtn">Rasmga olish / tanlash</button>
+            <div class="photo-result" id="photoResult"></div>
+          </div>
+        </div>
+
+      </div>
     </div>
 
     <!-- Premium modal -->
@@ -1037,7 +1137,7 @@
         <div class="pm-step">
           <div class="pm-step-num">2</div>
           <div class="pm-step-txt">To'lov chekini (skrinshot) shu Telegram'ga yuboring:
-            <a href="https://t.me/tohirovs777" target="_blank" class="pm-telegram">📩 @tohirovs777</a>
+            <a href="https://t.me/formapremium_bot" target="_blank" class="pm-telegram">📩 @formapremium_bot</a>
           </div>
         </div>
         <div class="pm-step">
@@ -1133,9 +1233,13 @@ function renderSchedule(){
   });
 }
 
-function toggleDiet(){
-  document.getElementById('dietBody').classList.toggle('open');
-  document.getElementById('dietArrow').classList.toggle('open');
+function openSheet(id){
+  document.querySelectorAll('.sheet-panel').forEach(function(p){ p.classList.remove('active'); });
+  document.getElementById(id).classList.add('active');
+  document.getElementById('sheetModal').classList.add('show');
+}
+function closeSheetModal(){
+  document.getElementById('sheetModal').classList.remove('show');
 }
 
 // ============================================================

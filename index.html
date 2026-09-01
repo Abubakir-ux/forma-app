@@ -628,6 +628,7 @@
   .photo-tool .pt-icon{ font-size:30px; margin-bottom:8px; }
   .photo-tool .pt-title{ font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:15px; margin-bottom:4px; }
   .photo-tool .pt-sub{ font-size:12.5px; color:var(--muted); margin-bottom:14px; }
+  .photo-tool .pt-limit{ font-size:11px; color:var(--amber); margin:-10px 0 14px 0; font-weight:600; }
   .btn-amber{ background:var(--amber); color:#2A1B0A; }
 
   .photo-result{
@@ -652,6 +653,8 @@
     overflow:hidden;
     margin-bottom:4px;
   }
+  .premium-card.unlocked .premium-blur{ filter:none; opacity:1; pointer-events:auto; }
+  .premium-card.unlocked .premium-overlay{ display:none; }
   .premium-blur{
     filter:blur(5px);
     opacity:0.5;
@@ -681,6 +684,98 @@
   .premium-overlay .po-title{ font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:15px; }
   .premium-overlay .po-sub{ font-size:12px; color:var(--muted); max-width:220px; }
   .btn-small{ padding:10px 20px; font-size:13px; width:auto; }
+
+  /* Premium modal */
+  .modal-backdrop{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.6);
+    display:none;
+    align-items:flex-end;
+    justify-content:center;
+    z-index:1000;
+  }
+  .modal-backdrop.show{ display:flex; }
+  .modal-box{
+    background:var(--surface);
+    border-radius:24px 24px 0 0;
+    padding:28px 24px 32px 24px;
+    width:100%;
+    max-width:430px;
+    max-height:88vh;
+    overflow-y:auto;
+    position:relative;
+    animation:slideUp .3s ease;
+  }
+  @keyframes slideUp{ from{ transform:translateY(40px); opacity:0; } to{ transform:translateY(0); opacity:1; } }
+  .modal-close{
+    position:absolute;
+    top:18px; right:18px;
+    width:32px; height:32px;
+    border-radius:50%;
+    background:var(--surface-2);
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+    color:var(--muted);
+    font-size:14px;
+  }
+  .pm-icon{ font-size:36px; text-align:center; margin-bottom:6px; }
+  .pm-title{ font-family:'Space Grotesk', sans-serif; font-size:22px; text-align:center; margin-bottom:6px; }
+  .pm-price{ text-align:center; font-family:'Space Grotesk', sans-serif; font-size:28px; font-weight:700; color:var(--lime); margin-bottom:18px; }
+  .pm-price span{ font-size:14px; color:var(--muted); font-weight:500; }
+  .pm-features{ list-style:none; padding:0; margin:0 0 22px 0; }
+  .pm-features li{ font-size:13.5px; padding:6px 0; color:var(--text); }
+  .pm-step{ display:flex; gap:12px; margin-bottom:16px; }
+  .pm-step-num{
+    width:24px; height:24px;
+    border-radius:50%;
+    background:var(--lime);
+    color:#0D1F1A;
+    font-weight:700;
+    font-size:12px;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+    margin-top:1px;
+  }
+  .pm-step-txt{ font-size:13.5px; color:var(--muted); line-height:1.5; }
+  .pm-step-txt b{ color:var(--text); }
+  .pm-card-number{
+    margin-top:8px;
+    background:var(--surface-2);
+    border:1px dashed var(--lime);
+    border-radius:10px;
+    padding:10px 12px;
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:700;
+    font-size:15px;
+    color:var(--text);
+    letter-spacing:.02em;
+    cursor:pointer;
+  }
+  .pm-card-number span{ font-size:10px; color:var(--muted); font-weight:400; display:block; margin-top:2px; }
+  .pm-telegram{
+    display:inline-block;
+    margin-top:8px;
+    color:var(--lime);
+    font-weight:600;
+    text-decoration:none;
+    font-size:13.5px;
+  }
+  .pm-code-row{ display:flex; gap:8px; margin-top:8px; }
+  .pm-code-input{
+    flex:1;
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:12px 14px;
+    color:var(--text);
+    font-size:14px;
+    outline:none;
+  }
+  .pm-code-input:focus{ border-color:var(--lime); }
+  .pm-code-msg{ font-size:12px; margin-top:10px; text-align:center; min-height:16px; }
+  .pm-code-msg.error{ color:var(--danger); }
+  .pm-code-msg.success{ color:var(--lime); }
 </style>
 </head>
 <body>
@@ -896,13 +991,14 @@
           <div class="pt-icon">📸</div>
           <div class="pt-title">Ovqat kaloriyasini bilish</div>
           <div class="pt-sub">Taomingiz rasmini oling — AI kaloriyasini taxmin qilib beradi</div>
+          <div class="pt-limit" id="photoLimitText">—</div>
           <input type="file" id="foodPhotoInput" accept="image/*" capture="environment" style="display:none" onchange="handleFoodPhoto(event)">
           <button class="btn btn-amber" onclick="document.getElementById('foodPhotoInput').click()" id="photoBtn">Rasmga olish / tanlash</button>
           <div class="photo-result" id="photoResult"></div>
         </div>
 
         <div class="section-label">Shaxsiy mashq va taom rejasi</div>
-        <div class="premium-card">
+        <div class="premium-card" id="planPremiumCard">
           <div class="premium-blur">
             <div class="plan-list" id="exerciseList"></div>
             <div class="plan-list" id="mealList" style="margin-top:10px;"></div>
@@ -911,13 +1007,49 @@
             <div class="lock-icon">🔒</div>
             <div class="po-title">Premium xususiyat</div>
             <div class="po-sub">To'liq mashq va taom rejasini ochish uchun Premium'ga o'ting</div>
-            <button class="btn btn-primary btn-small" onclick="alert('Premium sotib olish tez orada qo\u02bcshiladi')">Premium olish</button>
+            <button class="btn btn-primary btn-small" onclick="openPremiumModal()">Premium olish</button>
           </div>
         </div>
 
         <div class="hint" style="margin:18px 0 4px 0;">Bu — <b>onboarding demo</b>. Haqiqiy ilovada mashq/taom bazasi kengroq bo'ladi.</div>
       </div>
       <button class="btn btn-primary" onclick="restart()">Ilovaga o'tish</button>
+    </div>
+
+    <!-- Premium modal -->
+    <div class="modal-backdrop" id="premiumModal">
+      <div class="modal-box">
+        <div class="modal-close" onclick="closePremiumModal()">✕</div>
+        <div class="pm-icon">⭐</div>
+        <h2 class="pm-title">Forma Premium</h2>
+        <div class="pm-price">5 000 <span>so'm / oy</span></div>
+        <ul class="pm-features">
+          <li>✅ Shaxsiy mashq va taom rejasi</li>
+          <li>✅ Cheksiz ovqat-kaloriya tahlili</li>
+          <li>✅ Reklamasiz foydalanish</li>
+        </ul>
+        <div class="pm-step">
+          <div class="pm-step-num">1</div>
+          <div class="pm-step-txt">Quyidagi kartaga <b>5 000 so'm</b> o'tkazing:
+            <div class="pm-card-number" onclick="copyCardNumber()">9860 0801 8162 4901 <span id="copyHint">(nusxalash uchun bosing)</span></div>
+          </div>
+        </div>
+        <div class="pm-step">
+          <div class="pm-step-num">2</div>
+          <div class="pm-step-txt">To'lov chekini (skrinshot) shu Telegram'ga yuboring:
+            <a href="https://t.me/tohirovs777" target="_blank" class="pm-telegram">📩 @tohirovs777</a>
+          </div>
+        </div>
+        <div class="pm-step">
+          <div class="pm-step-num">3</div>
+          <div class="pm-step-txt">Tasdiqlangach, sizga <b>faollashtirish kodi</b> yuboriladi — shu yerga kiriting:</div>
+        </div>
+        <div class="pm-code-row">
+          <input type="text" id="premiumCodeInput" placeholder="Kodni kiriting" class="pm-code-input">
+          <button class="btn btn-primary btn-small" onclick="activatePremium()" id="activateBtn">Faollashtirish</button>
+        </div>
+        <div class="pm-code-msg" id="premiumCodeMsg"></div>
+      </div>
     </div>
 
   </div>
@@ -1107,6 +1239,81 @@ async function onSoundToggle(){
       }
     } catch(err){ /* jim tinchgina o'tkazamiz */ }
   }
+}
+
+// ============================================================
+// PREMIUM
+// ============================================================
+function isPremiumActive(){
+  const until = parseInt(localStorage.getItem('forma_premium_until') || '0', 10);
+  return until > Date.now();
+}
+
+function applyPremiumUI(){
+  if(isPremiumActive()){
+    document.getElementById('planPremiumCard').classList.add('unlocked');
+  }
+}
+
+function openPremiumModal(){
+  document.getElementById('premiumModal').classList.add('show');
+}
+function closePremiumModal(){
+  document.getElementById('premiumModal').classList.remove('show');
+}
+
+function copyCardNumber(){
+  const text = '9860080181624901';
+  navigator.clipboard.writeText(text).then(function(){
+    document.getElementById('copyHint').textContent = '(nusxalandi ✅)';
+    setTimeout(function(){
+      document.getElementById('copyHint').textContent = '(nusxalash uchun bosing)';
+    }, 2000);
+  }).catch(function(){});
+}
+
+async function activatePremium(){
+  const codeInput = document.getElementById('premiumCodeInput');
+  const msgEl = document.getElementById('premiumCodeMsg');
+  const btnEl = document.getElementById('activateBtn');
+  const code = codeInput.value.trim();
+
+  if(!code){
+    msgEl.textContent = 'Kodni kiriting';
+    msgEl.className = 'pm-code-msg error';
+    return;
+  }
+
+  btnEl.disabled = true;
+  btnEl.textContent = 'Tekshirilmoqda...';
+  msgEl.textContent = '';
+
+  try{
+    const res = await fetch(CALORIE_API_URL + '/verify-premium', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: code })
+    });
+    const data = await res.json();
+
+    if(data.valid){
+      const until = Date.now() + (data.days || 30) * 24 * 60 * 60 * 1000;
+      localStorage.setItem('forma_premium_until', String(until));
+      msgEl.textContent = 'Premium faollashtirildi! ✅';
+      msgEl.className = 'pm-code-msg success';
+      applyPremiumUI();
+      setTimeout(closePremiumModal, 1500);
+    } else {
+      msgEl.textContent = 'Kod noto\u02bcg\u02bcri yoki allaqachon ishlatilgan';
+      msgEl.className = 'pm-code-msg error';
+    }
+  } catch(err){
+    msgEl.textContent = 'Xatolik: internetni tekshiring';
+    msgEl.className = 'pm-code-msg error';
+  }
+
+  btnEl.disabled = false;
+  btnEl.textContent = 'Faollashtirish';
 }
 
 // progress dots only represent steps 1..9 (name -> target weight)
@@ -1319,14 +1526,57 @@ function finish(){
   renderPlanList('mealList', MEALS[goal]);
   renderSchedule();
   initNotifSettings();
+  updatePhotoLimitText();
+  applyPremiumUI();
 
   showStep(10);
 }
 
 // Ovqat rasmidan kaloriya aniqlash — Cloudflare Worker orqali Gemini AI'ga jo'natadi
+const FREE_PHOTO_LIMIT = 2;
+
+function getTodayPhotoCount(){
+  const today = new Date().toDateString();
+  const stored = JSON.parse(localStorage.getItem('forma_photo_usage') || '{}');
+  if(stored.date !== today) return 0;
+  return stored.count || 0;
+}
+
+function incrementTodayPhotoCount(){
+  const today = new Date().toDateString();
+  const stored = JSON.parse(localStorage.getItem('forma_photo_usage') || '{}');
+  const count = (stored.date === today ? (stored.count || 0) : 0) + 1;
+  localStorage.setItem('forma_photo_usage', JSON.stringify({ date: today, count: count }));
+  return count;
+}
+
+function updatePhotoLimitText(){
+  const el = document.getElementById('photoLimitText');
+  if(!el) return;
+  if(isPremiumActive()){
+    el.textContent = "⭐ Premium — cheksiz foydalanish";
+    return;
+  }
+  const used = getTodayPhotoCount();
+  const remaining = Math.max(0, FREE_PHOTO_LIMIT - used);
+  el.textContent = remaining > 0
+    ? "Bugun yana " + remaining + " marta bepul ishlatishingiz mumkin"
+    : "Bugungi bepul limit tugadi \u2014 ertaga qayta tiklanadi";
+}
+
 function handleFoodPhoto(event){
   const file = event.target.files[0];
   if(!file) return;
+
+  if(!isPremiumActive() && getTodayPhotoCount() >= FREE_PHOTO_LIMIT){
+    event.target.value = '';
+    const resultEl = document.getElementById('photoResult');
+    resultEl.innerHTML =
+      '<div class="pr-note">Bugungi bepul limitingiz (' + FREE_PHOTO_LIMIT + ' marta) tugadi. ' +
+      'Cheksiz foydalanish uchun <b>Premium</b>\u02bcga o\u02bcting, yoki ertaga qayta urinib ko\u02bcring.</div>';
+    resultEl.classList.add('show');
+    return;
+  }
 
   const resultEl = document.getElementById('photoResult');
   const btnEl = document.getElementById('photoBtn');
@@ -1365,6 +1615,8 @@ function handleFoodPhoto(event){
         '<div class="pr-cal">' + (data.kaloriya != null ? data.kaloriya + ' kkal' : '—') + '</div>' +
         '<div class="pr-note">' + (data.izoh || '') + '</div>';
       resultEl.classList.add('show');
+      incrementTodayPhotoCount();
+      updatePhotoLimitText();
     })
     .catch(function(err){
       btnEl.disabled = false;

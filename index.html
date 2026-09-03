@@ -655,6 +655,39 @@
   .weight-log-item .wl-date{ color:var(--muted); }
   .weight-log-item .wl-weight{ font-weight:700; }
 
+  /* Vazn tahlili (Premium) */
+  .analysis-card{
+    display:flex;
+    gap:12px;
+    align-items:flex-start;
+    background:linear-gradient(135deg, rgba(198,255,107,0.12), var(--surface-2));
+    border:1px solid rgba(198,255,107,0.3);
+    border-radius:14px;
+    padding:14px 16px;
+    margin-bottom:14px;
+    animation:fadeIn .3s ease;
+  }
+  .analysis-card.warn{
+    background:linear-gradient(135deg, rgba(255,178,91,0.14), var(--surface-2));
+    border-color:rgba(255,178,91,0.32);
+  }
+  .ac-icon{ font-size:20px; flex-shrink:0; }
+  .ac-txt{ font-size:13px; color:var(--text); line-height:1.5; }
+  .analysis-locked{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    background:var(--surface-2);
+    border:1px dashed var(--line);
+    border-radius:14px;
+    padding:14px 16px;
+    margin-bottom:14px;
+  }
+  .al-icon{ font-size:20px; flex-shrink:0; }
+  .al-txt{ flex:1; min-width:0; }
+  .al-txt strong{ display:block; font-size:13px; }
+  .al-txt span{ font-size:11px; color:var(--muted); }
+
   /* Sheet panels ichida (bitta vaqtda faqat bittasi ko'rinadi) */
   .sheet-panel{ display:none; }
   .sheet-panel.active{ display:block; animation:fadeIn .2s ease; }
@@ -1219,6 +1252,7 @@
             <input type="number" id="newWeightInput" placeholder="Bugungi vazningiz (kg)" class="pm-code-input" style="flex:1;">
             <button class="btn btn-primary btn-small" onclick="logNewWeight()">Saqlash</button>
           </div>
+          <div id="weightAnalysisWrap"></div>
           <div class="weight-log-list" id="weightLogList"></div>
         </div>
 
@@ -1388,6 +1422,7 @@ const MEALS = {
 // Kunlik jadval — maqsadga qarab tavsiya etilgan vaqtlar
 const SCHEDULE = {
   lose: [
+    {time:'06:45', icon:'⚖️', title:'Vazningizni o\u02bclchang', sub:"Ilovaga kiriting \u2014 tahlil qilib beramiz"},
     {time:'07:00', icon:'🏃', title:'Ertalabki yugurish/tez yurish', sub:'1-2 km'},
     {time:'08:00', icon:'🍳', title:'Nonushta', sub:'Yengil, oqsilga boy'},
     {time:'13:00', icon:'🥗', title:'Tushlik', sub:'Sabzavot + oqsil'},
@@ -1396,6 +1431,7 @@ const SCHEDULE = {
     {time:'21:00', icon:'💧', title:'Suv ichish, dam olish', sub:"Uyqudan oldin og'ir ovqat yo'q"}
   ],
   gain: [
+    {time:'06:45', icon:'⚖️', title:'Vazningizni o\u02bclchang', sub:"Ilovaga kiriting \u2014 tahlil qilib beramiz"},
     {time:'08:00', icon:'🍳', title:'Nonushta', sub:"To'yimli, kaloriyaga boy"},
     {time:'11:00', icon:'🥜', title:"Oraliq ovqat", sub:'Yong\u02bcoq, smoothie'},
     {time:'14:00', icon:'🍚', title:'Tushlik', sub:"Katta porsiya"},
@@ -1433,7 +1469,7 @@ function saveWeightLog(log){
 function seedWeightLogIfEmpty(){
   const log = getWeightLog();
   if(log.length === 0){
-    saveWeightLog([{ date: new Date().toLocaleDateString('uz-UZ'), weight: curWeight }]);
+    saveWeightLog([{ date: new Date().toLocaleDateString('uz-UZ'), ts: Date.now(), weight: curWeight }]);
   }
 }
 
@@ -1460,6 +1496,67 @@ function renderWeightProgress(){
     div.innerHTML = '<span class="wl-date">' + entry.date + '</span><span class="wl-weight">' + entry.weight + ' kg</span>';
     listEl.appendChild(div);
   });
+
+  renderWeightAnalysis(log);
+}
+
+function generateWeightAnalysis(log){
+  if(log.length < 2){
+    return { ready:false, message: "Kamida 2 kun vazn kiritsangiz, shaxsiy tahlil chiqaramiz." };
+  }
+  const first = log[0];
+  const latest = log[log.length - 1];
+  const daysSpan = Math.max(1, (latest.ts - first.ts) / (1000*60*60*24));
+  const actualChange = goal === 'lose' ? (first.weight - latest.weight) : (latest.weight - first.weight);
+  const weeklyRate = (actualChange / daysSpan) * 7;
+  const calories = calculateCalories();
+
+  let message, adjustedCalories = null, tone = 'good';
+
+  if(weeklyRate >= 1.0){
+    tone = 'warn';
+    message = "Vazningiz juda tez o\u02bczgaryapti (haftasiga " + weeklyRate.toFixed(1) + " kg). Bu sog\u02bcliq uchun xavfli bo\u02bcishi mumkin \u2014 " +
+      (goal==='lose' ? "ovqatlanishni biroz oshiring" : "ovqatlanishni biroz kamaytiring") + ", zarur bo\u02bcsa shifokor bilan maslahatlashing.";
+  } else if(weeklyRate >= 0.35){
+    tone = 'good';
+    message = "Zo\u02bcr natija! Haftasiga taxminan " + weeklyRate.toFixed(1) + " kg " + (goal==='lose'?'kamaydi':'oshdi') + " \u2014 bu aynan xavfsiz va barqaror sur\u02bcat. Xuddi shunday davom eting 💪";
+  } else if(weeklyRate >= 0.1){
+    adjustedCalories = goal === 'lose' ? calories - 150 : calories + 150;
+    message = "Sekinroq borayapti (haftasiga " + weeklyRate.toFixed(1) + " kg). Kunlik me\u02bcyorni " + adjustedCalories + " kkal ga o\u02bczgartirishni tavsiya qilamiz, va kunlik yurish/mashqni birozgina oshiring.";
+  } else {
+    adjustedCalories = goal === 'lose' ? calories - 250 : calories + 250;
+    tone = 'warn';
+    message = "Vazningiz deyarli o\u02bczgarmayapti. Bu \u2014 tanangiz moslashib qolgani bo\u02bcishi mumkin (\u2018plato\u2019). Kunlik me\u02bcyorni " + adjustedCalories + " kkal ga o\u02bczgartiring va mashq intensivligini oshiring.";
+  }
+
+  return { ready:true, message, adjustedCalories, tone, weeklyRate };
+}
+
+function renderWeightAnalysis(log){
+  const wrap = document.getElementById('weightAnalysisWrap');
+  if(!wrap) return;
+
+  if(!isPremiumActive()){
+    wrap.innerHTML =
+      '<div class="analysis-locked">' +
+        '<div class="al-icon">🔒</div>' +
+        '<div class="al-txt"><strong>Shaxsiy AI tahlil</strong><span>Real holatingizga qarab moslashuvchan maslahat \u2014 faqat Premium\u02bcda</span></div>' +
+        '<button class="btn btn-primary btn-small" onclick="openPremiumModal()">Ochish</button>' +
+      '</div>';
+    return;
+  }
+
+  const analysis = generateWeightAnalysis(log);
+  if(!analysis.ready){
+    wrap.innerHTML = '<div class="analysis-card"><div class="ac-txt">' + analysis.message + '</div></div>';
+    return;
+  }
+
+  wrap.innerHTML =
+    '<div class="analysis-card ' + (analysis.tone === 'warn' ? 'warn' : 'good') + '">' +
+      '<div class="ac-icon">' + (analysis.tone === 'warn' ? '⚠️' : '✨') + '</div>' +
+      '<div class="ac-txt">' + analysis.message + '</div>' +
+    '</div>';
 }
 
 function logNewWeight(){
@@ -1470,7 +1567,7 @@ function logNewWeight(){
     return;
   }
   const log = getWeightLog();
-  log.push({ date: new Date().toLocaleDateString('uz-UZ'), weight: val });
+  log.push({ date: new Date().toLocaleDateString('uz-UZ'), ts: Date.now(), weight: val });
   saveWeightLog(log);
   input.value = '';
   renderWeightProgress();
@@ -1648,6 +1745,7 @@ async function activatePremium(){
       msgEl.textContent = 'Premium faollashtirildi! ✅';
       msgEl.className = 'pm-code-msg success';
       applyPremiumUI();
+      renderWeightProgress();
       setTimeout(closePremiumModal, 1500);
     } else {
       msgEl.textContent = 'Kod noto\u02bcg\u02bcri yoki allaqachon ishlatilgan';

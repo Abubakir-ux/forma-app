@@ -735,6 +735,75 @@
     padding:10px;
   }
 
+  /* Suv ichish kuzatuvi */
+  .water-glasses{
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    gap:12px;
+    margin:20px 0;
+  }
+  .water-glass{
+    position:relative;
+    width:100%;
+    aspect-ratio:1;
+    cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .water-glass svg{ width:100%; height:100%; overflow:visible; }
+  .water-glass .glass-outline{
+    fill:none;
+    stroke:var(--line);
+    stroke-width:2.5;
+  }
+  .water-glass .glass-fill{
+    fill:#4FC3F7;
+    opacity:0;
+    transform:scaleY(0);
+    transform-origin:bottom;
+    transition: transform .4s cubic-bezier(.34,1.56,.64,1), opacity .2s ease;
+  }
+  .water-glass.filled .glass-fill{ opacity:.85; transform:scaleY(1); }
+  .water-glass.filled{ animation: glassBounce .4s ease; }
+  @keyframes glassBounce{ 0%{ transform:scale(1); } 40%{ transform:scale(1.15); } 100%{ transform:scale(1); } }
+  .water-count-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-top:6px;
+    font-size:13px;
+    color:var(--muted);
+  }
+  #waterCountText{ font-weight:700; color:var(--text); }
+  .water-reset-btn{
+    background:none;
+    border:none;
+    color:var(--muted);
+    font-size:12px;
+    cursor:pointer;
+    text-decoration:underline;
+  }
+
+  /* Haftalik hisobot */
+  .weekly-stat-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:16px 0; }
+  .weekly-stat{
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:14px;
+    text-align:center;
+  }
+  .weekly-stat .ws-val{ font-family:'Space Grotesk', sans-serif; font-size:22px; font-weight:700; color:var(--lime); }
+  .weekly-stat .ws-label{ font-size:11px; color:var(--muted); margin-top:2px; }
+  .weekly-verdict{
+    margin-top:14px;
+    padding:14px;
+    border-radius:14px;
+    font-size:13.5px;
+    line-height:1.5;
+  }
+  .weekly-verdict.good{ background:rgba(198,255,107,0.1); border:1px solid rgba(198,255,107,0.3); color:var(--text); }
+  .weekly-verdict.warn{ background:rgba(255,178,91,0.1); border:1px solid rgba(255,178,91,0.3); color:var(--text); }
+
   /* Bildirishnoma kartasi */
   .notif-card{
     background:var(--surface-2);
@@ -1241,7 +1310,15 @@
             <div class="tile-icon">📸</div>
             <div class="tile-label">Ovqat-kaloriya</div>
           </div>
-          <div class="tile" onclick="openSheet('sheet-referral')" style="animation-delay:.30s">
+          <div class="tile" onclick="openSheet('sheet-water')" style="animation-delay:.30s">
+            <div class="tile-icon">💧</div>
+            <div class="tile-label">Suv ichish</div>
+          </div>
+          <div class="tile" onclick="openSheet('sheet-weekly')" style="animation-delay:.34s">
+            <div class="tile-icon">📊</div>
+            <div class="tile-label">Haftalik hisobot</div>
+          </div>
+          <div class="tile" onclick="openSheet('sheet-referral')" style="animation-delay:.38s">
             <div class="tile-icon">🎁</div>
             <div class="tile-label">Do'st taklif qiling</div>
           </div>
@@ -1351,6 +1428,25 @@
             <input type="file" id="foodPhotoInput" accept="image/*" capture="environment" style="display:none" onchange="handleFoodPhoto(event)">
             <button class="btn btn-amber" onclick="document.getElementById('foodPhotoInput').click()" id="photoBtn">Rasmga olish / tanlash</button>
             <div class="photo-result" id="photoResult"></div>
+          </div>
+        </div>
+
+        <div class="sheet-panel" id="sheet-water">
+          <div class="ic-title">💧 Suv ichish kuzatuvi</div>
+          <div class="ic-body">Kunlik maqsad: <b id="waterGoalText">8 stakan</b> (~2 litr)</div>
+
+          <div class="water-glasses" id="waterGlasses"></div>
+
+          <div class="water-count-row">
+            <span id="waterCountText">0 / 8 stakan</span>
+            <button class="water-reset-btn" onclick="resetWaterToday()">↺ Qayta boshlash</button>
+          </div>
+        </div>
+
+        <div class="sheet-panel" id="sheet-weekly">
+          <div class="ic-title">📊 Haftalik hisobot</div>
+          <div id="weeklyReportBody">
+            <div class="ic-body">Hisobot uchun kamida 7 kunlik vazn ma\u02bclumoti kerak.</div>
           </div>
         </div>
 
@@ -1630,6 +1726,12 @@ function openSheet(id){
   if(id === 'sheet-referral'){
     initReferral();
   }
+  if(id === 'sheet-water'){
+    renderWaterGlasses();
+  }
+  if(id === 'sheet-weekly'){
+    renderWeeklyReport();
+  }
 }
 function closeSheetModal(){
   document.getElementById('sheetModal').classList.remove('show');
@@ -1691,6 +1793,89 @@ function copyReferralLink(){
   navigator.clipboard.writeText(text).then(function(){
     alert('Havola nusxalandi! Do\u02bcstlaringizga ulashing 🎉');
   }).catch(function(){});
+}
+
+// ============================================================
+// SUV ICHISH KUZATUVI
+// ============================================================
+const WATER_GOAL = 8;
+
+function getWaterState(){
+  const today = new Date().toDateString();
+  const stored = JSON.parse(localStorage.getItem('forma_water') || '{}');
+  if(stored.date !== today) return { date: today, count: 0 };
+  return stored;
+}
+
+function saveWaterState(state){
+  localStorage.setItem('forma_water', JSON.stringify(state));
+}
+
+function renderWaterGlasses(){
+  const state = getWaterState();
+  const wrap = document.getElementById('waterGlasses');
+  wrap.innerHTML = '';
+  for(let i=1;i<=WATER_GOAL;i++){
+    const div = document.createElement('div');
+    div.className = 'water-glass' + (i <= state.count ? ' filled' : '');
+    div.onclick = function(){ toggleWaterGlass(i); };
+    div.innerHTML =
+      '<svg viewBox="0 0 40 48">' +
+        '<clipPath id="clip' + i + '"><path d="M6 4 H34 L30 44 H10 Z"/></clipPath>' +
+        '<rect class="glass-fill" x="6" y="4" width="28" height="40" clip-path="url(#clip' + i + ')"></rect>' +
+        '<path class="glass-outline" d="M6 4 H34 L30 44 H10 Z"/>' +
+      '</svg>';
+    wrap.appendChild(div);
+  }
+  document.getElementById('waterCountText').textContent = state.count + ' / ' + WATER_GOAL + ' stakan';
+}
+
+function toggleWaterGlass(index){
+  const state = getWaterState();
+  // Agar shu stakan to'lgan bo'lsa va undan keyingilar bo'sh bo'lsa, bosilgan joygacha to'ldiramiz/bo'shatamiz
+  state.count = (index <= state.count) ? index - 1 : index;
+  saveWaterState(state);
+  renderWaterGlasses();
+}
+
+function resetWaterToday(){
+  const today = new Date().toDateString();
+  saveWaterState({ date: today, count: 0 });
+  renderWaterGlasses();
+}
+
+// ============================================================
+// HAFTALIK HISOBOT
+// ============================================================
+function renderWeeklyReport(){
+  const log = getWeightLog();
+  const bodyEl = document.getElementById('weeklyReportBody');
+  const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  const weekEntries = log.filter(function(e){ return e.ts >= weekAgo; });
+
+  if(weekEntries.length < 2){
+    bodyEl.innerHTML = '<div class="ic-body">Hisobot uchun shu hafta kamida 2 marta vazn kiritishingiz kerak. Hozircha ' + weekEntries.length + ' marta kiritilgan.</div>';
+    return;
+  }
+
+  const first = weekEntries[0];
+  const last = weekEntries[weekEntries.length - 1];
+  const change = goal === 'lose' ? (first.weight - last.weight) : (last.weight - first.weight);
+  const changeAbs = Math.abs(change).toFixed(1);
+  const daysLogged = weekEntries.length;
+
+  const isGood = change >= 0.2;
+
+  bodyEl.innerHTML =
+    '<div class="weekly-stat-grid">' +
+      '<div class="weekly-stat"><div class="ws-val">' + (change >= 0 ? '' : '-') + changeAbs + ' kg</div><div class="ws-label">Bu hafta natija</div></div>' +
+      '<div class="weekly-stat"><div class="ws-val">' + daysLogged + '</div><div class="ws-label">Marta vazn kiritildi</div></div>' +
+    '</div>' +
+    '<div class="weekly-verdict ' + (isGood ? 'good' : 'warn') + '">' +
+      (isGood
+        ? "🎉 Zo\u02bcr hafta bo\u02cdldi! Shu sur\u02bcatda davom eting, natija ko\u02bcrinib turibdi."
+        : "Bu hafta natija kutilganidan sekinroq. Parhez va kunlik rejaga qat\u02bciyroq amal qilishga harakat qiling.") +
+    '</div>';
 }
 
 function applyReferralFromUrl(){

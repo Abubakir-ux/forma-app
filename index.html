@@ -704,6 +704,37 @@
   .sheet-panel .ic-body{ font-size:14px; color:var(--muted); line-height:1.6; margin-top:12px; }
   .sheet-panel .ic-body b{ color:var(--text); }
 
+  /* Referral */
+  .referral-reward-banner{
+    margin-top:14px;
+    background:linear-gradient(135deg, rgba(198,255,107,0.16), rgba(198,255,107,0.04));
+    border:1px solid rgba(198,255,107,0.3);
+    border-radius:12px;
+    padding:12px 14px;
+    font-size:13px;
+    color:var(--lime);
+    font-weight:600;
+    text-align:center;
+    animation: rewardPulse 1.6s ease-in-out infinite;
+  }
+  @keyframes rewardPulse{ 0%,100%{ box-shadow:0 0 0 0 rgba(198,255,107,0.25); } 50%{ box-shadow:0 0 0 8px rgba(198,255,107,0); } }
+  .referral-link-box{
+    margin-top:18px;
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:16px;
+    text-align:center;
+  }
+  .referral-link-text{
+    font-size:12px;
+    color:var(--muted);
+    word-break:break-all;
+    background:var(--bg);
+    border-radius:8px;
+    padding:10px;
+  }
+
   /* Bildirishnoma kartasi */
   .notif-card{
     background:var(--surface-2);
@@ -1210,6 +1241,10 @@
             <div class="tile-icon">📸</div>
             <div class="tile-label">Ovqat-kaloriya</div>
           </div>
+          <div class="tile" onclick="openSheet('sheet-referral')" style="animation-delay:.30s">
+            <div class="tile-icon">🎁</div>
+            <div class="tile-label">Do'st taklif qiling</div>
+          </div>
         </div>
 
         <div class="section-label">Shaxsiy mashq va taom rejasi</div>
@@ -1316,6 +1351,21 @@
             <input type="file" id="foodPhotoInput" accept="image/*" capture="environment" style="display:none" onchange="handleFoodPhoto(event)">
             <button class="btn btn-amber" onclick="document.getElementById('foodPhotoInput').click()" id="photoBtn">Rasmga olish / tanlash</button>
             <div class="photo-result" id="photoResult"></div>
+          </div>
+        </div>
+
+        <div class="sheet-panel" id="sheet-referral">
+          <div class="ic-title">🎁 Do'stlaringizni taklif qiling</div>
+          <div class="ic-body">Har bir taklif qilgan do'stingiz uchun <b>siz 7 kun</b>, do'stingiz esa <b>1 kun</b> bepul Premium oladi.</div>
+
+          <div class="referral-reward-banner" id="referralRewardBanner" style="display:none;">
+            🎉 Do'stlaringiz sizga <span id="referralRewardDays">0</span> kun Premium qo'shib berdi!
+          </div>
+
+          <div class="referral-link-box">
+            <div class="referral-link-text" id="referralLinkText">yuklanmoqda...</div>
+            <button class="btn btn-primary btn-small" onclick="copyReferralLink()" style="margin-top:10px;">🔗 Havolani nusxalash</button>
+            <a href="#" id="referralTelegramShare" target="_blank" class="pm-telegram" style="margin-top:8px;">📩 Telegram orqali ulashish</a>
           </div>
         </div>
 
@@ -1577,9 +1627,95 @@ function openSheet(id){
   document.querySelectorAll('.sheet-panel').forEach(function(p){ p.classList.remove('active'); });
   document.getElementById(id).classList.add('active');
   document.getElementById('sheetModal').classList.add('show');
+  if(id === 'sheet-referral'){
+    initReferral();
+  }
 }
 function closeSheetModal(){
   document.getElementById('sheetModal').classList.remove('show');
+}
+
+// ============================================================
+// DO'STLARNI TAKLIF QILISH (REFERRAL)
+// ============================================================
+function getOrCreateReferralCode(){
+  let code = localStorage.getItem('forma_referral_code');
+  if(!code){
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    code = '';
+    for(let i=0;i<6;i++) code += chars[Math.floor(Math.random()*chars.length)];
+    localStorage.setItem('forma_referral_code', code);
+    fetch(CALORIE_API_URL + '/create-referral', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: code })
+    }).catch(function(){});
+  }
+  return code;
+}
+
+function initReferral(){
+  const code = getOrCreateReferralCode();
+  const link = 'https://abubakir-ux.github.io/forma-app/?ref=' + code;
+  document.getElementById('referralLinkText').textContent = link;
+
+  const shareText = encodeURIComponent("Menga Forma ilovasi juda yordam berdi! Sen ham sinab ko\u02bcr, ikkalamiz ham bonus olamiz:");
+  document.getElementById('referralTelegramShare').href =
+    'https://t.me/share/url?url=' + encodeURIComponent(link) + '&text=' + shareText;
+
+  fetch(CALORIE_API_URL + '/claim-referral-rewards', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code: code })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data){
+    if(data.days && data.days > 0){
+      const current = parseInt(localStorage.getItem('forma_premium_until') || '0', 10);
+      const base = Math.max(current, Date.now());
+      const newUntil = base + data.days * 24 * 60 * 60 * 1000;
+      localStorage.setItem('forma_premium_until', String(newUntil));
+      applyPremiumUI();
+      updatePhotoLimitText();
+
+      const banner = document.getElementById('referralRewardBanner');
+      document.getElementById('referralRewardDays').textContent = data.days;
+      banner.style.display = 'block';
+    }
+  })
+  .catch(function(){});
+}
+
+function copyReferralLink(){
+  const text = document.getElementById('referralLinkText').textContent;
+  navigator.clipboard.writeText(text).then(function(){
+    alert('Havola nusxalandi! Do\u02bcstlaringizga ulashing 🎉');
+  }).catch(function(){});
+}
+
+function applyReferralFromUrl(){
+  const params = new URLSearchParams(window.location.search);
+  const refCode = params.get('ref');
+  if(!refCode) return;
+
+  const ownCode = localStorage.getItem('forma_referral_code');
+  if(refCode === ownCode) return; // o'zining kodi
+  if(localStorage.getItem('forma_ref_used') === 'true') return; // avval ishlatilgan
+
+  fetch(CALORIE_API_URL + '/use-referral', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code: refCode })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data){
+    if(data.valid){
+      const until = Date.now() + 1 * 24 * 60 * 60 * 1000;
+      localStorage.setItem('forma_premium_until', String(until));
+      localStorage.setItem('forma_ref_used', 'true');
+    }
+  })
+  .catch(function(){});
 }
 
 // ============================================================
@@ -2131,6 +2267,7 @@ function restart(){
 renderRuler('cur'); renderRuler('tgt'); renderRuler('age'); renderRuler('height');
 updateWeightDisplay();
 renderProgress();
+applyReferralFromUrl();
 
 if('serviceWorker' in navigator){
   window.addEventListener('load', ()=>{

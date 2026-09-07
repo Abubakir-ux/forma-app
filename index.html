@@ -804,6 +804,90 @@
   .weekly-verdict.good{ background:rgba(198,255,107,0.1); border:1px solid rgba(198,255,107,0.3); color:var(--text); }
   .weekly-verdict.warn{ background:rgba(255,178,91,0.1); border:1px solid rgba(255,178,91,0.3); color:var(--text); }
 
+  /* Mashq tafsiloti */
+  .plan-item.clickable{ cursor:pointer; }
+  .pi-arrow{ color:var(--muted); font-size:18px; margin-left:auto; flex-shrink:0; }
+  .ex-detail-header{ display:flex; align-items:center; gap:14px; }
+  .ex-detail-icon{
+    width:52px; height:52px;
+    border-radius:14px;
+    background:var(--surface-2);
+    display:flex; align-items:center; justify-content:center;
+    font-size:26px;
+    flex-shrink:0;
+  }
+  .ex-detail-title{ font-family:'Space Grotesk', sans-serif; font-size:17px; font-weight:700; }
+  .ex-detail-sub{ font-size:12.5px; color:var(--muted); margin-top:2px; }
+  .ex-steps{ display:flex; flex-direction:column; gap:12px; margin-top:14px; }
+  .ex-step{ display:flex; gap:12px; align-items:flex-start; }
+  .ex-step-num{
+    width:24px; height:24px;
+    border-radius:50%;
+    background:var(--lime);
+    color:#0D1F1A;
+    font-weight:700;
+    font-size:12px;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+  .ex-step-txt{ font-size:13.5px; color:var(--text); line-height:1.5; padding-top:2px; }
+
+  /* AI Murabbiy chat */
+  .coach-limit{ font-size:11px; color:var(--amber); font-weight:600; margin-bottom:10px; }
+  .coach-chat{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    max-height:280px;
+    overflow-y:auto;
+    margin-bottom:12px;
+    padding-right:2px;
+  }
+  .coach-msg{
+    max-width:82%;
+    padding:10px 13px;
+    border-radius:14px;
+    font-size:13px;
+    line-height:1.5;
+    animation: fadeIn .25s ease;
+  }
+  .coach-msg.user{
+    align-self:flex-end;
+    background:var(--lime);
+    color:#0D1F1A;
+    border-bottom-right-radius:4px;
+    font-weight:500;
+  }
+  .coach-msg.ai{
+    align-self:flex-start;
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    border-bottom-left-radius:4px;
+  }
+  .coach-msg.typing{ display:flex; gap:4px; align-items:center; padding:12px 16px; }
+  .coach-msg.typing span{
+    width:6px; height:6px;
+    border-radius:50%;
+    background:var(--muted);
+    animation: typingDot 1.2s ease-in-out infinite;
+  }
+  .coach-msg.typing span:nth-child(2){ animation-delay:.2s; }
+  .coach-msg.typing span:nth-child(3){ animation-delay:.4s; }
+  @keyframes typingDot{ 0%,60%,100%{ opacity:.3; transform:translateY(0); } 30%{ opacity:1; transform:translateY(-3px); } }
+  .coach-input-row{ display:flex; gap:8px; }
+
+  /* AI taom rejasi */
+  .aimeal-result{ margin-top:16px; }
+  .aimeal-day{
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:12px 14px;
+    margin-bottom:8px;
+  }
+  .aimeal-day-title{ font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:13px; color:var(--amber); margin-bottom:6px; }
+  .aimeal-day-body{ font-size:12.5px; color:var(--muted); line-height:1.6; }
+
   /* Bildirishnoma kartasi */
   .notif-card{
     background:var(--surface-2);
@@ -1322,6 +1406,14 @@
             <div class="tile-icon">🎁</div>
             <div class="tile-label">Do'st taklif qiling</div>
           </div>
+          <div class="tile amber" onclick="openSheet('sheet-coach')" style="animation-delay:.42s">
+            <div class="tile-icon">🤖</div>
+            <div class="tile-label">AI murabbiy</div>
+          </div>
+          <div class="tile amber" onclick="openSheet('sheet-aimeal')" style="animation-delay:.46s">
+            <div class="tile-icon">🍽️</div>
+            <div class="tile-label">AI taom rejasi</div>
+          </div>
         </div>
 
         <div class="section-label">Shaxsiy mashq va taom rejasi</div>
@@ -1450,6 +1542,34 @@
           </div>
         </div>
 
+        <div class="sheet-panel" id="sheet-coach">
+          <div class="ic-title">🤖 AI Murabbiy</div>
+          <div class="ic-body" style="margin-bottom:12px;">Savolingizni yozing — sizning maqsad va ma'lumotlaringizga qarab javob beradi.</div>
+          <div class="coach-limit" id="coachLimitText">—</div>
+          <div class="coach-chat" id="coachChat"></div>
+          <div class="coach-input-row">
+            <input type="text" id="coachInput" placeholder="Savolingizni yozing..." class="pm-code-input" onkeypress="if(event.key==='Enter') sendCoachMessage()">
+            <button class="btn btn-amber btn-small" onclick="sendCoachMessage()" id="coachSendBtn">Yuborish</button>
+          </div>
+        </div>
+
+        <div class="sheet-panel" id="sheet-aimeal">
+          <div class="ic-title">🍽️ AI shaxsiy taom rejasi</div>
+          <div class="premium-card" id="aimealPremiumCard">
+            <div class="premium-blur" id="aimealContent">
+              <div class="ic-body" style="margin-bottom:14px;">Kaloriya me'yoringiz va maqsadingizga mos <b>7 kunlik</b> taom rejasini AI generatsiya qiladi.</div>
+              <button class="btn btn-amber" onclick="generateAiMealPlan()" id="aimealBtn">✨ Reja generatsiya qilish</button>
+              <div class="aimeal-result" id="aimealResult"></div>
+            </div>
+            <div class="premium-overlay">
+              <div class="lock-icon">🔒</div>
+              <div class="po-title">Premium xususiyat</div>
+              <div class="po-sub">AI shaxsiy taom rejasi uchun Premium'ga o'ting</div>
+              <button class="btn btn-primary btn-small" onclick="openPremiumModal()">Premium olish</button>
+            </div>
+          </div>
+        </div>
+
         <div class="sheet-panel" id="sheet-referral">
           <div class="ic-title">🎁 Do'stlaringizni taklif qiling</div>
           <div class="ic-body">Har bir taklif qilgan do'stingiz uchun <b>siz 7 kun</b>, do'stingiz esa <b>1 kun</b> bepul Premium oladi.</div>
@@ -1465,6 +1585,22 @@
           </div>
         </div>
 
+      </div>
+    </div>
+
+    <!-- Exercise detail modal -->
+    <div class="modal-backdrop" id="exerciseDetailModal">
+      <div class="modal-box">
+        <div class="modal-close" onclick="closeExerciseDetail()">✕</div>
+        <div class="ex-detail-header">
+          <div class="ex-detail-icon" id="exDetailIcon">🏃</div>
+          <div>
+            <div class="ex-detail-title" id="exDetailTitle">—</div>
+            <div class="ex-detail-sub" id="exDetailSub">—</div>
+          </div>
+        </div>
+        <div class="ic-title" style="margin-top:20px;">Qanday bajarish kerak</div>
+        <div class="ex-steps" id="exDetailSteps"></div>
       </div>
     </div>
 
@@ -1535,18 +1671,68 @@ const state = { name:'', phone:'' };
 
 const EXERCISES = {
   lose: [
-    {icon:'🏃', title:'Tez yurish', sub:'30 daqiqa, har kuni'},
-    {icon:'🚴', title:'Velosiped haydash', sub:'30 daqiqa, haftada 3 marta'},
-    {icon:'🤸', title:'Mokisimon yugurish', sub:'15 daqiqa, intervalli'},
-    {icon:'🏊', title:'Suzish', sub:'30 daqiqa, haftada 2 marta'},
-    {icon:'🪢', title:'Arqon sakrash', sub:'10 daqiqa, har kuni'}
+    {icon:'🏃', title:'Tez yurish', sub:'30 daqiqa, har kuni', howTo:[
+      "Orqangizni tik tuting, qadamni tabiiy tashlang",
+      "Qo'llaringizni yengil bukib, yurish bilan birga silkiting",
+      "Nafasni bir tekis, burun orqali oling",
+      "Haftasiga kamida 5 kun, kuniga 30 daqiqa davom eting"
+    ]},
+    {icon:'🚴', title:'Velosiped haydash', sub:'30 daqiqa, haftada 3 marta', howTo:[
+      "O'rindiqni oyoq to'liq cho'zilganda tizza biroz bukiladigan balandlikka sozlang",
+      "Avval tekis yo'lda boshlang, tayyorgarlik oshgach qiyalikka o'ting",
+      "Pedalni bir tekis, silliq aylantiring",
+      "Haftada 3 marta, 30 daqiqadan"
+    ]},
+    {icon:'🤸', title:'Mokisimon yugurish', sub:'15 daqiqa, intervalli', howTo:[
+      "10 metr masofani belgilang",
+      "Tez yugurib boring, chiziqqa yetganda to'xtab yo'nalishni o'zgartiring",
+      "30 soniya yugurish, 30 soniya tinch yurish bilan almashtiring",
+      "Jami 15 daqiqa davom eting"
+    ]},
+    {icon:'🏊', title:'Suzish', sub:'30 daqiqa, haftada 2 marta', howTo:[
+      "Sizga qulay uslubni tanlang (erkin, ko'krak yoki chalqancha)",
+      "Nafasni suv ichida chiqarib, tashqarida oling",
+      "Haftada 2 marta, 30 daqiqadan",
+      "Suvda mashq bo'g'imlarga yengil, shuning uchun boshlovchilar uchun ham xavfsiz"
+    ]},
+    {icon:'🪢', title:'Arqon sakrash', sub:'10 daqiqa, har kuni', howTo:[
+      "Tirsaklarni tanaga yaqin tuting, faqat bilaklar bilan aylantiring",
+      "Past, yengil sakrang — oyoq panjasi uchida qo'ning",
+      "1 daqiqa sakrash, 30 soniya dam olish tartibida davom eting",
+      "Jami 10 daqiqa"
+    ]}
   ],
   gain: [
-    {icon:'🏋️', title:"Cho'kkalab turish (squat)", sub:"4x12, og'irlik bilan"},
-    {icon:'💪', title:'Gantel bilan mashqlar', sub:'4x10, haftada 3 marta'},
-    {icon:'🤲', title:'Turnikda tortilish', sub:'4x8'},
-    {icon:'🧎', title:'Lunges (qadam tashlab cho\u02bckish)', sub:'4x12 har oyoqqa'},
-    {icon:'🪵', title:'Plank', sub:'3x1 daqiqa'}
+    {icon:'🏋️', title:"Cho'kkalab turish (squat)", sub:"4x12, og'irlik bilan", howTo:[
+      "Oyoqlaringizni yelka kengligida qo'ying",
+      "Orqani tik tutib, xuddi stulga o'tirayotgandek pastga tushing",
+      "Tizzalar oyoq uchidan oldinga chiqib ketmasin",
+      "4 ta yondashish, har birida 12 marta"
+    ]},
+    {icon:'💪', title:'Gantel bilan mashqlar', sub:'4x10, haftada 3 marta', howTo:[
+      "Gantelni mahkam ushlab, tirsakni bukib ko'taring (bicep curl)",
+      "Yoki gantelni yelka ustidan tepaga iting (shoulder press)",
+      "Harakatni sekin, nazorat ostida bajaring",
+      "4 ta yondashish, har birida 10 marta"
+    ]},
+    {icon:'🤲', title:'Turnikda tortilish', sub:'4x8', howTo:[
+      "Qo'llaringizni yelkadan biroz kengroq joylashtiring",
+      "Iyagingiz turnik darajasidan oshguncha yuqoriga tortiling",
+      "Pastga sekin, nazorat ostida tushing",
+      "4 ta yondashish, imkoningiz boricha ko'p marta"
+    ]},
+    {icon:'🧎', title:'Lunges (qadam tashlab cho\u02bckish)', sub:'4x12 har oyoqqa', howTo:[
+      "Bir oyog'ingiz bilan oldinga katta qadam tashlang",
+      "Ikkala tizza ham taxminan 90 gradusgacha bukilsin",
+      "Boshlang'ich holatga qayting, boshqa oyoq bilan takrorlang",
+      "4 ta yondashish, har oyoqqa 12 martadan"
+    ]},
+    {icon:'🪵', title:'Plank', sub:'3x1 daqiqa', howTo:[
+      "Tirsaklar va oyoq uchlarida tayanib, tanani ko'taring",
+      "Tana boshdan tovongacha to'g'ri chiziq bo'lsin",
+      "Qorin mushaklarini taranglashtirib ushlab turing",
+      "3 marta, har birida 1 daqiqadan"
+    ]}
   ]
 };
 
@@ -1731,6 +1917,12 @@ function openSheet(id){
   }
   if(id === 'sheet-weekly'){
     renderWeeklyReport();
+  }
+  if(id === 'sheet-coach'){
+    updateCoachLimitText();
+  }
+  if(id === 'sheet-aimeal'){
+    updateAimealUI();
   }
 }
 function closeSheetModal(){
@@ -2228,17 +2420,185 @@ function calculateCalories(){
   return Math.round(target / 10) * 10;
 }
 
+// ============================================================
+// AI MURABBIY (CHAT)
+// ============================================================
+const FREE_COACH_LIMIT = 3;
+
+function getTodayCoachCount(){
+  const today = new Date().toDateString();
+  const stored = JSON.parse(localStorage.getItem('forma_coach_usage') || '{}');
+  if(stored.date !== today) return 0;
+  return stored.count || 0;
+}
+function incrementTodayCoachCount(){
+  const today = new Date().toDateString();
+  const stored = JSON.parse(localStorage.getItem('forma_coach_usage') || '{}');
+  const count = (stored.date === today ? (stored.count || 0) : 0) + 1;
+  localStorage.setItem('forma_coach_usage', JSON.stringify({ date: today, count: count }));
+}
+function updateCoachLimitText(){
+  const el = document.getElementById('coachLimitText');
+  if(isPremiumActive()){
+    el.textContent = '⭐ Premium — cheksiz savol berishingiz mumkin';
+    return;
+  }
+  const remaining = Math.max(0, FREE_COACH_LIMIT - getTodayCoachCount());
+  el.textContent = remaining > 0
+    ? "Bugun yana " + remaining + " ta savol bepul"
+    : "Bugungi bepul limit tugadi \u2014 ertaga qayta tiklanadi";
+}
+
+function addCoachMessage(text, sender){
+  const chat = document.getElementById('coachChat');
+  const div = document.createElement('div');
+  div.className = 'coach-msg ' + sender;
+  div.textContent = text;
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+  return div;
+}
+
+async function sendCoachMessage(){
+  const input = document.getElementById('coachInput');
+  const question = input.value.trim();
+  if(!question) return;
+
+  if(!isPremiumActive() && getTodayCoachCount() >= FREE_COACH_LIMIT){
+    addCoachMessage("Bugungi bepul limitingiz tugadi. Cheksiz savol berish uchun Premium'ga o\u02bcting.", 'ai');
+    return;
+  }
+
+  addCoachMessage(question, 'user');
+  input.value = '';
+  document.getElementById('coachSendBtn').disabled = true;
+
+  const chat = document.getElementById('coachChat');
+  const typingDiv = document.createElement('div');
+  typingDiv.className = 'coach-msg ai typing';
+  typingDiv.innerHTML = '<span></span><span></span><span></span>';
+  chat.appendChild(typingDiv);
+  chat.scrollTop = chat.scrollHeight;
+
+  try{
+    const log = getWeightLog();
+    const latestWeight = log.length ? log[log.length-1].weight : curWeight;
+
+    const res = await fetch(CALORIE_API_URL + '/ai-coach', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        question: question,
+        goal: goal,
+        calories: document.getElementById('calorieVal').textContent,
+        currentWeight: latestWeight,
+        targetWeight: tgtWeight,
+        name: state.name
+      })
+    });
+    const data = await res.json();
+    typingDiv.remove();
+
+    if(data.answer){
+      addCoachMessage(data.answer, 'ai');
+      if(!isPremiumActive()) incrementTodayCoachCount();
+      updateCoachLimitText();
+    } else {
+      addCoachMessage("Kechirasiz, javob olishda xatolik yuz berdi. Qayta urinib ko\u02bcring.", 'ai');
+    }
+  } catch(err){
+    typingDiv.remove();
+    addCoachMessage("Internetni tekshirib, qayta urinib ko\u02bcring.", 'ai');
+  }
+
+  document.getElementById('coachSendBtn').disabled = false;
+}
+
+// ============================================================
+// AI TAOM REJASI (Premium)
+// ============================================================
+function updateAimealUI(){
+  document.getElementById('aimealPremiumCard').classList.toggle('unlocked', isPremiumActive());
+  const cached = localStorage.getItem('forma_ai_meal_plan');
+  if(cached){
+    renderAiMealPlan(JSON.parse(cached));
+  }
+}
+
+async function generateAiMealPlan(){
+  const btn = document.getElementById('aimealBtn');
+  const resultEl = document.getElementById('aimealResult');
+  btn.disabled = true;
+  btn.textContent = 'Generatsiya qilinmoqda...';
+  resultEl.innerHTML = '';
+
+  try{
+    const res = await fetch(CALORIE_API_URL + '/generate-meal-plan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ calories: document.getElementById('calorieVal').textContent, goal: goal })
+    });
+    const data = await res.json();
+    if(data.plan){
+      localStorage.setItem('forma_ai_meal_plan', JSON.stringify(data.plan));
+      renderAiMealPlan(data.plan);
+    } else {
+      resultEl.innerHTML = '<div class="pr-note">Xatolik yuz berdi, qayta urinib ko\u02bcring.</div>';
+    }
+  } catch(err){
+    resultEl.innerHTML = '<div class="pr-note">Internetni tekshiring.</div>';
+  }
+
+  btn.disabled = false;
+  btn.textContent = '✨ Qayta generatsiya qilish';
+}
+
+function renderAiMealPlan(plan){
+  const resultEl = document.getElementById('aimealResult');
+  resultEl.innerHTML = '';
+  plan.forEach(function(day){
+    const div = document.createElement('div');
+    div.className = 'aimeal-day';
+    div.innerHTML = '<div class="aimeal-day-title">' + day.kun + '</div><div class="aimeal-day-body">' + day.taomlar + '</div>';
+    resultEl.appendChild(div);
+  });
+}
+
 function renderPlanList(containerId, items){
   const el = document.getElementById(containerId);
   el.innerHTML = '';
-  items.forEach(item => {
+  const isExercise = containerId === 'exerciseList';
+  items.forEach((item, idx) => {
     const div = document.createElement('div');
-    div.className = 'plan-item' + (goal === 'gain' ? ' gain' : '');
+    div.className = 'plan-item' + (goal === 'gain' ? ' gain' : '') + (isExercise ? ' clickable' : '');
     div.innerHTML =
       '<div class="pi-icon">' + item.icon + '</div>' +
-      '<div class="pi-txt"><strong>' + item.title + '</strong><span>' + item.sub + '</span></div>';
+      '<div class="pi-txt"><strong>' + item.title + '</strong><span>' + item.sub + '</span></div>' +
+      (isExercise ? '<div class="pi-arrow">›</div>' : '');
+    if(isExercise){
+      div.onclick = function(){ openExerciseDetail(idx); };
+    }
     el.appendChild(div);
   });
+}
+
+function openExerciseDetail(idx){
+  const item = EXERCISES[goal][idx];
+  document.getElementById('exDetailIcon').textContent = item.icon;
+  document.getElementById('exDetailTitle').textContent = item.title;
+  document.getElementById('exDetailSub').textContent = item.sub;
+  const stepsEl = document.getElementById('exDetailSteps');
+  stepsEl.innerHTML = '';
+  (item.howTo || []).forEach(function(step, i){
+    const li = document.createElement('div');
+    li.className = 'ex-step';
+    li.innerHTML = '<div class="ex-step-num">' + (i+1) + '</div><div class="ex-step-txt">' + step + '</div>';
+    stepsEl.appendChild(li);
+  });
+  document.getElementById('exerciseDetailModal').classList.add('show');
+}
+function closeExerciseDetail(){
+  document.getElementById('exerciseDetailModal').classList.remove('show');
 }
 
 function finish(){

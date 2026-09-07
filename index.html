@@ -418,7 +418,7 @@
     flex:1;
     overflow-y:auto;
     margin:0 -28px;
-    padding:0 28px 4px 28px;
+    padding:0 28px 28px 28px;
   }
   .calorie-card{
     background:linear-gradient(135deg, rgba(198,255,107,0.14), rgba(198,255,107,0.02));
@@ -887,6 +887,30 @@
   }
   .aimeal-day-title{ font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:13px; color:var(--amber); margin-bottom:6px; }
   .aimeal-day-body{ font-size:12.5px; color:var(--muted); line-height:1.6; }
+
+  /* Profil ekrani */
+  .profile-field{ margin-bottom:14px; }
+  .profile-field label{ display:block; font-size:12px; color:var(--muted); margin-bottom:6px; font-weight:500; }
+  .profile-field-row{ display:flex; gap:10px; }
+  .profile-field-row .profile-field{ flex:1; }
+  .profile-gender-row{ display:flex; gap:8px; }
+  .profile-gender-btn{
+    flex:1;
+    background:var(--surface-2);
+    border:1.5px solid var(--line);
+    border-radius:12px;
+    padding:11px;
+    color:var(--muted);
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    transition:.15s;
+  }
+  .profile-gender-btn.selected{
+    background:rgba(198,255,107,0.12);
+    border-color:var(--lime);
+    color:var(--lime);
+  }
 
   /* Bildirishnoma kartasi */
   .notif-card{
@@ -1414,6 +1438,10 @@
             <div class="tile-icon">🍽️</div>
             <div class="tile-label">AI taom rejasi</div>
           </div>
+          <div class="tile" onclick="openSheet('sheet-profile')" style="animation-delay:.50s">
+            <div class="tile-icon">👤</div>
+            <div class="tile-label">Profil</div>
+          </div>
         </div>
 
         <div class="section-label">Shaxsiy mashq va taom rejasi</div>
@@ -1429,10 +1457,7 @@
             <button class="btn btn-primary btn-small" onclick="openPremiumModal()">Premium olish</button>
           </div>
         </div>
-
-        <div class="hint" style="margin:18px 0 4px 0;">Bu — <b>onboarding demo</b>. Haqiqiy ilovada mashq/taom bazasi kengroq bo'ladi.</div>
       </div>
-      <button class="btn btn-primary" onclick="restart()">Ilovaga o'tish</button>
     </div>
 
     <!-- Universal bottom-sheet (Muddat/Maslahat/Jadval/Parhez/Bildirishnoma/Foto) -->
@@ -1540,6 +1565,52 @@
           <div id="weeklyReportBody">
             <div class="ic-body">Hisobot uchun kamida 7 kunlik vazn ma\u02bclumoti kerak.</div>
           </div>
+        </div>
+
+        <div class="sheet-panel" id="sheet-profile">
+          <div class="ic-title">👤 Profil</div>
+
+          <div class="profile-field">
+            <label>Ism</label>
+            <input type="text" id="profileNameInput" class="pm-code-input">
+          </div>
+          <div class="profile-field">
+            <label>Jins</label>
+            <div class="profile-gender-row">
+              <button class="profile-gender-btn" id="profileGenderMale" onclick="setProfileGender('male')">Erkak</button>
+              <button class="profile-gender-btn" id="profileGenderFemale" onclick="setProfileGender('female')">Ayol</button>
+            </div>
+          </div>
+          <div class="profile-field-row">
+            <div class="profile-field">
+              <label>Yosh</label>
+              <input type="number" id="profileAgeInput" class="pm-code-input">
+            </div>
+            <div class="profile-field">
+              <label>Bo'y (sm)</label>
+              <input type="number" id="profileHeightInput" class="pm-code-input">
+            </div>
+          </div>
+          <div class="profile-field-row">
+            <div class="profile-field">
+              <label>Hozirgi vazn (kg)</label>
+              <input type="number" id="profileCurWeightInput" class="pm-code-input">
+            </div>
+            <div class="profile-field">
+              <label>Maqsad vazn (kg)</label>
+              <input type="number" id="profileTgtWeightInput" class="pm-code-input">
+            </div>
+          </div>
+          <div class="profile-field">
+            <label>Maqsad</label>
+            <div class="profile-gender-row">
+              <button class="profile-gender-btn" id="profileGoalLose" onclick="setProfileGoal('lose')">Ozish</button>
+              <button class="profile-gender-btn" id="profileGoalGain" onclick="setProfileGoal('gain')">Semirish</button>
+            </div>
+          </div>
+
+          <button class="btn btn-primary" style="margin-top:20px;" onclick="saveProfile()">Saqlash</button>
+          <div class="pm-code-msg" id="profileSaveMsg"></div>
         </div>
 
         <div class="sheet-panel" id="sheet-coach">
@@ -1924,6 +1995,76 @@ function openSheet(id){
   if(id === 'sheet-aimeal'){
     updateAimealUI();
   }
+  if(id === 'sheet-profile'){
+    loadProfileForm();
+  }
+}
+
+// ============================================================
+// PROFIL
+// ============================================================
+function loadProfileForm(){
+  document.getElementById('profileNameInput').value = state.name || '';
+  document.getElementById('profileAgeInput').value = age;
+  document.getElementById('profileHeightInput').value = height;
+  document.getElementById('profileCurWeightInput').value = curWeight;
+  document.getElementById('profileTgtWeightInput').value = tgtWeight;
+  setProfileGender(gender, true);
+  setProfileGoal(goal, true);
+  document.getElementById('profileSaveMsg').textContent = '';
+}
+
+let profileGenderTemp = null;
+let profileGoalTemp = null;
+
+function setProfileGender(g, silent){
+  profileGenderTemp = g;
+  document.getElementById('profileGenderMale').classList.toggle('selected', g === 'male');
+  document.getElementById('profileGenderFemale').classList.toggle('selected', g === 'female');
+}
+function setProfileGoal(g, silent){
+  profileGoalTemp = g;
+  document.getElementById('profileGoalLose').classList.toggle('selected', g === 'lose');
+  document.getElementById('profileGoalGain').classList.toggle('selected', g === 'gain');
+}
+
+function saveProfile(){
+  const newName = document.getElementById('profileNameInput').value.trim();
+  const newAge = parseInt(document.getElementById('profileAgeInput').value, 10);
+  const newHeight = parseInt(document.getElementById('profileHeightInput').value, 10);
+  const newCurWeight = parseFloat(document.getElementById('profileCurWeightInput').value);
+  const newTgtWeight = parseFloat(document.getElementById('profileTgtWeightInput').value);
+  const msgEl = document.getElementById('profileSaveMsg');
+
+  if(!newName || !newAge || !newHeight || !newCurWeight || !newTgtWeight){
+    msgEl.textContent = 'Barcha maydonlarni to\u02bcldiring';
+    msgEl.className = 'pm-code-msg error';
+    return;
+  }
+
+  state.name = newName;
+  age = newAge;
+  height = newHeight;
+  curWeight = newCurWeight;
+  tgtWeight = newTgtWeight;
+  gender = profileGenderTemp;
+  goal = profileGoalTemp;
+
+  // Qayta hisoblab, natijalar ekranini yangilaymiz
+  const calories = calculateCalories();
+  document.getElementById('calorieVal').textContent = calories;
+  document.getElementById('calorieSub').textContent =
+    goal === 'lose' ? 'Ozish uchun tavsiya etilgan kunlik me\u02bcyor' : 'Semirish uchun tavsiya etilgan kunlik me\u02bcyor';
+  document.getElementById('calorieCard').classList.toggle('gain', goal === 'gain');
+  document.getElementById('resultsTitle').textContent = state.name + ', tabriklaymiz!';
+  renderPlanList('exerciseList', EXERCISES[goal]);
+  renderPlanList('mealList', MEALS[goal]);
+  renderSchedule();
+  renderWeightProgress();
+
+  msgEl.textContent = 'Saqlandi ✅';
+  msgEl.className = 'pm-code-msg success';
+  setTimeout(closeSheetModal, 1000);
 }
 function closeSheetModal(){
   document.getElementById('sheetModal').classList.remove('show');

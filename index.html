@@ -319,23 +319,46 @@
   }
   .step-btn:active{ background:var(--lime); color:#0D1F1A; border-color:var(--lime); }
   .ruler{
+    position:relative;
     width:100%;
+    height:40px;
+    overflow:hidden;
+    mask-image:linear-gradient(90deg, transparent, black 15%, black 85%, transparent);
+    cursor:grab;
+    touch-action:none;
+    -webkit-user-select:none;
+    user-select:none;
+  }
+  .ruler.dragging{ cursor:grabbing; }
+  .ruler::after{
+    content:'';
+    position:absolute;
+    left:50%; top:0;
+    width:3px; height:40px;
+    background:var(--lime);
+    transform:translateX(-50%);
+    border-radius:2px;
+    pointer-events:none;
+    z-index:2;
+    box-shadow:0 0 10px rgba(198,255,107,0.6);
+  }
+  .ruler-track{
+    position:absolute;
+    top:0; left:0;
     height:40px;
     display:flex;
     align-items:flex-end;
-    gap:6px;
-    overflow:hidden;
-    mask-image:linear-gradient(90deg, transparent, black 15%, black 85%, transparent);
+    will-change:transform;
   }
-  .ruler .tick{
+  .ruler-track .tick{
     width:2px;
+    margin-right:12px;
     background:var(--line);
     border-radius:2px;
     height:14px;
     flex-shrink:0;
   }
-  .ruler .tick.mid{ height:24px; background:var(--muted); }
-  .ruler .tick.center{ height:40px; background:var(--lime); width:3px; }
+  .ruler-track .tick.mid{ height:24px; background:var(--muted); }
 
   /* Summary */
   .summary-card{
@@ -2501,18 +2524,75 @@ function selectGender(g){
   document.getElementById('genderBtn').disabled = false;
 }
 
+const RULER_IDS = { cur:'curRuler', tgt:'tgtRuler', age:'ageRuler', height:'heightRuler' };
+const RULER_SPACING = 14; // piksel, 1 birlikka to'g'ri keladi
+const RULER_CONFIG = {
+  cur:    { min:30,  max:200, get:()=>curWeight, set:(v)=>{ curWeight=v; updateWeightDisplay(); } },
+  tgt:    { min:30,  max:200, get:()=>tgtWeight, set:(v)=>{ tgtWeight=v; updateWeightDisplay(); } },
+  age:    { min:12,  max:90,  get:()=>age,       set:(v)=>{ age=v; document.getElementById('ageVal').textContent=v; } },
+  height: { min:120, max:220, get:()=>height,    set:(v)=>{ height=v; document.getElementById('heightVal').textContent=v; } }
+};
+
 function renderRuler(which){
-  const map = { cur:'curRuler', tgt:'tgtRuler', age:'ageRuler', height:'heightRuler' };
-  const el = document.getElementById(map[which]);
+  const el = document.getElementById(RULER_IDS[which]);
   if(!el) return;
+  const cfg = RULER_CONFIG[which];
+
   el.innerHTML = '';
-  for(let i=0;i<40;i++){
+  const track = document.createElement('div');
+  track.className = 'ruler-track';
+  track.id = RULER_IDS[which] + 'Track';
+  for(let v = cfg.min; v <= cfg.max; v++){
     const t = document.createElement('div');
-    t.className = 'tick';
-    if(i === 20) t.classList.add('center');
-    else if(i % 5 === 0) t.classList.add('mid');
-    el.appendChild(t);
+    t.className = 'tick' + (v % 10 === 0 ? ' mid' : '');
+    track.appendChild(t);
   }
+  el.appendChild(track);
+
+  positionRulerTrack(which, cfg.get());
+  if(!el.dataset.dragBound){
+    attachRulerDrag(el, which);
+    el.dataset.dragBound = '1';
+  }
+}
+
+function positionRulerTrack(which, value){
+  const el = document.getElementById(RULER_IDS[which]);
+  const track = document.getElementById(RULER_IDS[which] + 'Track');
+  if(!el || !track) return;
+  const cfg = RULER_CONFIG[which];
+  const centerOffset = el.clientWidth / 2;
+  const x = centerOffset - (value - cfg.min) * RULER_SPACING;
+  track.style.transform = 'translateX(' + x + 'px)';
+}
+
+function attachRulerDrag(el, which){
+  const cfg = RULER_CONFIG[which];
+  let dragging = false, startX = 0, startValue = 0;
+
+  el.addEventListener('pointerdown', function(e){
+    dragging = true;
+    startX = e.clientX;
+    startValue = cfg.get();
+    el.classList.add('dragging');
+    el.setPointerCapture(e.pointerId);
+  });
+  el.addEventListener('pointermove', function(e){
+    if(!dragging) return;
+    const deltaX = e.clientX - startX;
+    let newValue = startValue - deltaX / RULER_SPACING;
+    newValue = Math.max(cfg.min, Math.min(cfg.max, newValue));
+    cfg.set(Math.round(newValue));
+    positionRulerTrack(which, newValue);
+  });
+  function endDrag(){
+    if(!dragging) return;
+    dragging = false;
+    el.classList.remove('dragging');
+    positionRulerTrack(which, cfg.get());
+  }
+  el.addEventListener('pointerup', endDrag);
+  el.addEventListener('pointercancel', endDrag);
 }
 
 function updateWeightDisplay(){
@@ -2528,6 +2608,7 @@ function stepWeight(which, dir){
     tgtWeight = Math.min(max, Math.max(min, tgtWeight + dir));
   }
   updateWeightDisplay();
+  positionRulerTrack(which, which === 'cur' ? curWeight : tgtWeight);
 }
 
 function stepNumber(which, dir){
@@ -2538,6 +2619,7 @@ function stepNumber(which, dir){
     height = Math.min(220, Math.max(120, height + dir));
     document.getElementById('heightVal').textContent = height;
   }
+  positionRulerTrack(which, which === 'age' ? age : height);
 }
 
 // Mifflin-St Jeor formula — tibbiyotda keng tan olingan, ishonchli hisoblash usuli.

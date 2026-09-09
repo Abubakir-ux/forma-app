@@ -562,11 +562,66 @@
   }
 
   /* Tile grid — 3D bosiladigan tugmalar */
+  .tile-section-label{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:12px;
+    font-weight:700;
+    color:var(--muted);
+    margin:22px 0 10px 0;
+    letter-spacing:.02em;
+  }
+  .tile-section-label:first-child{ margin-top:6px; }
   .tile-grid{
     display:grid;
     grid-template-columns:1fr 1fr 1fr;
     gap:10px;
-    margin:20px 0;
+    margin:0;
+  }
+
+  /* Tab pages (bo'lim ichidagi kontent) */
+  .tab-page{ display:none; margin-top:6px; }
+  .tab-page.active{ display:block; animation: fadeIn .25s ease; }
+  .results-scroll-tabbed{ padding-bottom:14px; }
+
+  /* Instagram uslubidagi pastki tab-panel */
+  .bottom-tabbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-around;
+    padding:10px 8px calc(10px + env(safe-area-inset-bottom)) 8px;
+    background:rgba(19,38,32,0.92);
+    backdrop-filter:blur(16px);
+    -webkit-backdrop-filter:blur(16px);
+    border-top:1px solid var(--line);
+    flex-shrink:0;
+  }
+  .tab-btn{
+    background:none;
+    border:none;
+    padding:9px 22px;
+    border-radius:14px;
+    cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+    transition:background .15s ease, transform .12s ease;
+    position:relative;
+  }
+  .tab-btn:active{ transform:scale(.9); }
+  .tab-btn-icon{
+    font-size:22px;
+    display:block;
+    filter:grayscale(1) opacity(.5);
+    transition:filter .2s ease;
+  }
+  .tab-btn.active .tab-btn-icon{ filter:grayscale(0) opacity(1); }
+  .tab-btn.active{ background:rgba(198,255,107,0.1); }
+  .tab-btn.active::after{
+    content:'';
+    position:absolute;
+    bottom:2px; left:50%;
+    transform:translateX(-50%);
+    width:4px; height:4px;
+    border-radius:50%;
+    background:var(--lime);
   }
   .tile{
     background:linear-gradient(160deg, #1E3B32, #16302A);
@@ -1397,7 +1452,7 @@
     <div class="screen" data-step="10">
       <div class="eyebrow">Tayyor</div>
       <h1 id="resultsTitle">Tabriklaymiz!</h1>
-      <div class="results-scroll">
+      <div class="results-scroll results-scroll-tabbed">
         <div class="calorie-card" id="calorieCard">
           <div class="calorie-ring-wrap">
             <svg class="calorie-ring" viewBox="0 0 140 140">
@@ -1412,74 +1467,106 @@
           <div class="calorie-sub" id="calorieSub">—</div>
         </div>
 
-        <div class="tile-grid">
-          <div class="tile" onclick="openSheet('sheet-progress')" style="animation-delay:.02s">
-            <div class="tile-icon">📈</div>
-            <div class="tile-label">Vazn kuzatuvi</div>
-          </div>
-          <div class="tile" onclick="openSheet('sheet-timeline')" style="animation-delay:.06s">
-            <div class="tile-icon">📅</div>
-            <div class="tile-label">Muddat</div>
-          </div>
-          <div class="tile" onclick="openSheet('sheet-advice')" style="animation-delay:.10s">
-            <div class="tile-icon">🚶</div>
-            <div class="tile-label">Kunlik maslahat</div>
-          </div>
-          <div class="tile" onclick="openSheet('sheet-schedule')" style="animation-delay:.14s">
-            <div class="tile-icon">🗓️</div>
-            <div class="tile-label">Kunlik jadval</div>
-          </div>
-          <div class="tile" onclick="openSheet('sheet-diet')" style="animation-delay:.18s">
-            <div class="tile-icon">🥗</div>
-            <div class="tile-label">Parhez</div>
-          </div>
-          <div class="tile" onclick="openSheet('sheet-notif')" style="animation-delay:.22s">
-            <div class="tile-icon">🔔</div>
-            <div class="tile-label">Bildirishnoma</div>
-          </div>
-          <div class="tile amber" onclick="openSheet('sheet-photo')" style="animation-delay:.26s">
-            <div class="tile-icon">📸</div>
-            <div class="tile-label">Ovqat-kaloriya</div>
-          </div>
-          <div class="tile" onclick="openSheet('sheet-water')" style="animation-delay:.30s">
-            <div class="tile-icon">💧</div>
-            <div class="tile-label">Suv ichish</div>
-          </div>
-          <div class="tile" onclick="openSheet('sheet-weekly')" style="animation-delay:.34s">
-            <div class="tile-icon">📊</div>
-            <div class="tile-label">Haftalik hisobot</div>
-          </div>
-          <div class="tile" onclick="openSheet('sheet-referral')" style="animation-delay:.38s">
-            <div class="tile-icon">🎁</div>
-            <div class="tile-label">Do'st taklif qiling</div>
-          </div>
-          <div class="tile amber" onclick="openSheet('sheet-coach')" style="animation-delay:.42s">
-            <div class="tile-icon">🤖</div>
-            <div class="tile-label">AI murabbiy</div>
-          </div>
-          <div class="tile amber" onclick="openSheet('sheet-aimeal')" style="animation-delay:.46s">
-            <div class="tile-icon">🍽️</div>
-            <div class="tile-label">AI taom rejasi</div>
-          </div>
-          <div class="tile" onclick="openSheet('sheet-profile')" style="animation-delay:.50s">
-            <div class="tile-icon">👤</div>
-            <div class="tile-label">Profil</div>
+        <div class="tab-page active" id="tabpage-today">
+          <div class="tile-grid">
+            <div class="tile" onclick="openSheet('sheet-schedule')" style="animation-delay:.02s">
+              <div class="tile-icon">🗓️</div>
+              <div class="tile-label">Kunlik jadval</div>
+            </div>
+            <div class="tile amber" onclick="openSheet('sheet-photo')" style="animation-delay:.06s">
+              <div class="tile-icon">📸</div>
+              <div class="tile-label">Ovqat-kaloriya</div>
+            </div>
+            <div class="tile" onclick="openSheet('sheet-water')" style="animation-delay:.10s">
+              <div class="tile-icon">💧</div>
+              <div class="tile-label">Suv ichish</div>
+            </div>
           </div>
         </div>
 
-        <div class="section-label">Shaxsiy mashq va taom rejasi</div>
-        <div class="premium-card" id="planPremiumCard">
-          <div class="premium-blur">
-            <div class="plan-list" id="exerciseList"></div>
-            <div class="plan-list" id="mealList" style="margin-top:10px;"></div>
-          </div>
-          <div class="premium-overlay">
-            <div class="lock-icon">🔒</div>
-            <div class="po-title">Premium xususiyat</div>
-            <div class="po-sub">To'liq mashq va taom rejasini ochish uchun Premium'ga o'ting</div>
-            <button class="btn btn-primary btn-small" onclick="openPremiumModal()">Premium olish</button>
+        <div class="tab-page" id="tabpage-progress">
+          <div class="tile-grid">
+            <div class="tile" onclick="openSheet('sheet-progress')" style="animation-delay:.02s">
+              <div class="tile-icon">📈</div>
+              <div class="tile-label">Vazn kuzatuvi</div>
+            </div>
+            <div class="tile" onclick="openSheet('sheet-weekly')" style="animation-delay:.06s">
+              <div class="tile-icon">📊</div>
+              <div class="tile-label">Haftalik hisobot</div>
+            </div>
+            <div class="tile" onclick="openSheet('sheet-timeline')" style="animation-delay:.10s">
+              <div class="tile-icon">📅</div>
+              <div class="tile-label">Muddat</div>
+            </div>
           </div>
         </div>
+
+        <div class="tab-page" id="tabpage-help">
+          <div class="tile-grid">
+            <div class="tile amber" onclick="openSheet('sheet-coach')" style="animation-delay:.02s">
+              <div class="tile-icon">🤖</div>
+              <div class="tile-label">AI murabbiy</div>
+            </div>
+            <div class="tile amber" onclick="openSheet('sheet-aimeal')" style="animation-delay:.06s">
+              <div class="tile-icon">🍽️</div>
+              <div class="tile-label">AI taom rejasi</div>
+            </div>
+            <div class="tile" onclick="openSheet('sheet-diet')" style="animation-delay:.10s">
+              <div class="tile-icon">🥗</div>
+              <div class="tile-label">Parhez</div>
+            </div>
+            <div class="tile" onclick="openSheet('sheet-advice')" style="animation-delay:.14s">
+              <div class="tile-icon">🚶</div>
+              <div class="tile-label">Kunlik maslahat</div>
+            </div>
+          </div>
+
+          <div class="section-label">Shaxsiy mashq va taom rejasi</div>
+          <div class="premium-card" id="planPremiumCard">
+            <div class="premium-blur">
+              <div class="plan-list" id="exerciseList"></div>
+              <div class="plan-list" id="mealList" style="margin-top:10px;"></div>
+            </div>
+            <div class="premium-overlay">
+              <div class="lock-icon">🔒</div>
+              <div class="po-title">Premium xususiyat</div>
+              <div class="po-sub">To'liq mashq va taom rejasini ochish uchun Premium'ga o'ting</div>
+              <button class="btn btn-primary btn-small" onclick="openPremiumModal()">Premium olish</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-page" id="tabpage-other">
+          <div class="tile-grid">
+            <div class="tile" onclick="openSheet('sheet-notif')" style="animation-delay:.02s">
+              <div class="tile-icon">🔔</div>
+              <div class="tile-label">Bildirishnoma</div>
+            </div>
+            <div class="tile" onclick="openSheet('sheet-referral')" style="animation-delay:.06s">
+              <div class="tile-icon">🎁</div>
+              <div class="tile-label">Do'st taklif</div>
+            </div>
+            <div class="tile" onclick="openSheet('sheet-profile')" style="animation-delay:.10s">
+              <div class="tile-icon">👤</div>
+              <div class="tile-label">Profil</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bottom-tabbar">
+        <button class="tab-btn active" id="tabbtn-today" onclick="switchTab('today')">
+          <span class="tab-btn-icon">🗓️</span>
+        </button>
+        <button class="tab-btn" id="tabbtn-progress" onclick="switchTab('progress')">
+          <span class="tab-btn-icon">📈</span>
+        </button>
+        <button class="tab-btn" id="tabbtn-help" onclick="switchTab('help')">
+          <span class="tab-btn-icon">🤝</span>
+        </button>
+        <button class="tab-btn" id="tabbtn-other" onclick="switchTab('other')">
+          <span class="tab-btn-icon">⚙️</span>
+        </button>
       </div>
     </div>
 
@@ -2091,6 +2178,14 @@ function saveProfile(){
 }
 function closeSheetModal(){
   document.getElementById('sheetModal').classList.remove('show');
+}
+
+function switchTab(tabName){
+  document.querySelectorAll('.tab-page').forEach(function(p){ p.classList.remove('active'); });
+  document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); });
+  document.getElementById('tabpage-' + tabName).classList.add('active');
+  document.getElementById('tabbtn-' + tabName).classList.add('active');
+  document.querySelector('.results-scroll-tabbed').scrollTop = 0;
 }
 
 // ============================================================

@@ -1721,6 +1721,7 @@
 
           <button class="btn btn-primary" style="margin-top:20px;" onclick="saveProfile()">Saqlash</button>
           <div class="pm-code-msg" id="profileSaveMsg"></div>
+          <button class="water-reset-btn" style="display:block; margin:16px auto 0 auto;" onclick="restart()">↺ Hammasini o'chirib, qaytadan boshlash</button>
         </div>
 
         <div class="sheet-panel" id="sheet-coach">
@@ -2159,6 +2160,7 @@ function saveProfile(){
   tgtWeight = newTgtWeight;
   gender = profileGenderTemp;
   goal = profileGoalTemp;
+  saveUserData();
 
   // Qayta hisoblab, natijalar ekranini yangilaymiz
   const calories = calculateCalories();
@@ -2920,6 +2922,12 @@ function closeExerciseDetail(){
 }
 
 function finish(){
+  saveUserData();
+  renderDashboard();
+  showStep(10);
+}
+
+function renderDashboard(){
   const calories = calculateCalories();
 
   document.getElementById('calorieVal').textContent = calories;
@@ -2973,8 +2981,38 @@ function finish(){
   applyPremiumUI();
   seedWeightLogIfEmpty();
   renderWeightProgress();
+}
 
-  showStep(10);
+// ============================================================
+// FOYDALANUVCHI MA'LUMOTLARINI SAQLASH (qayta kirganda onboarding'ni o'tkazib yuborish uchun)
+// ============================================================
+function saveUserData(){
+  localStorage.setItem('forma_user_saved', JSON.stringify({
+    name: state.name,
+    gender: gender,
+    age: age,
+    height: height,
+    curWeight: curWeight,
+    tgtWeight: tgtWeight,
+    goal: goal
+  }));
+}
+
+function loadUserData(){
+  const raw = localStorage.getItem('forma_user_saved');
+  if(!raw) return false;
+  try{
+    const d = JSON.parse(raw);
+    if(!d.goal || !d.curWeight) return false;
+    state.name = d.name || '';
+    gender = d.gender;
+    age = d.age;
+    height = d.height;
+    curWeight = d.curWeight;
+    tgtWeight = d.tgtWeight;
+    goal = d.goal;
+    return true;
+  } catch(e){ return false; }
 }
 
 // Ovqat rasmidan kaloriya aniqlash — Cloudflare Worker orqali Gemini AI'ga jo'natadi
@@ -3109,6 +3147,8 @@ function compressImage(file, maxDimension, quality){
 }
 
 function restart(){
+  if(!confirm("Barcha ma\u02bclumotlaringiz o\u02bcchiriladi va boshidan boshlaysiz. Davom etasizmi?")) return;
+  localStorage.removeItem('forma_user_saved');
   step = 0; goal = null; gender = null; age = 25; height = 165; curWeight = 65; tgtWeight = 60;
   state.name=''; state.phone='';
   document.getElementById('nameInput').value='';
@@ -3124,6 +3164,7 @@ function restart(){
   document.getElementById('ageVal').textContent = age;
   document.getElementById('heightVal').textContent = height;
   document.getElementById('photoResult').classList.remove('show');
+  document.getElementById('progress').style.display = '';
   showStep(0);
 }
 
@@ -3131,6 +3172,17 @@ renderRuler('cur'); renderRuler('tgt'); renderRuler('age'); renderRuler('height'
 updateWeightDisplay();
 renderProgress();
 applyReferralFromUrl();
+
+// Avval ro'yxatdan o'tgan bo'lsa, onboarding'ni o'tkazib, to'g'ridan-to'g'ri dashboard'ni ko'rsatamiz
+if(loadUserData()){
+  renderDashboard();
+  step = 10;
+  document.querySelectorAll('.screen').forEach(function(s){
+    s.classList.remove('active');
+    if(parseInt(s.dataset.step,10) === 10) s.classList.add('active');
+  });
+  document.getElementById('progress').style.display = 'none';
+}
 
 if('serviceWorker' in navigator){
   window.addEventListener('load', ()=>{

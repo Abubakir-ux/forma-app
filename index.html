@@ -1600,6 +1600,10 @@
               <div class="tile-icon">👤</div>
               <div class="tile-label">Profil</div>
             </div>
+            <div class="tile" onclick="openSheet('sheet-feedback')" style="animation-delay:.14s">
+              <div class="tile-icon">💬</div>
+              <div class="tile-label">Fikr bildirish</div>
+            </div>
           </div>
         </div>
       </div>
@@ -1811,6 +1815,14 @@
               <button class="btn btn-primary btn-small" onclick="openPremiumModal()">Premium olish</button>
             </div>
           </div>
+        </div>
+
+        <div class="sheet-panel" id="sheet-feedback">
+          <div class="ic-title">💬 Fikr bildirish</div>
+          <div class="ic-body">Ilovada yoqmagan narsa, xato yoki taklifingiz bo'lsa — to'g'ridan-to'g'ri yozing.</div>
+          <textarea id="feedbackInput" class="pm-code-input" style="width:100%; min-height:100px; margin-top:14px; resize:vertical; font-family:inherit;" placeholder="Fikringizni shu yerga yozing..."></textarea>
+          <button class="btn btn-primary" style="margin-top:14px;" onclick="sendFeedback()" id="feedbackSendBtn">Yuborish</button>
+          <div class="pm-code-msg" id="feedbackMsg"></div>
         </div>
 
         <div class="sheet-panel" id="sheet-referral">
@@ -2305,6 +2317,48 @@ function switchTab(tabName){
   document.getElementById('tabpage-' + tabName).classList.add('active');
   document.getElementById('tabbtn-' + tabName).classList.add('active');
   document.querySelector('.results-scroll-tabbed').scrollTop = 0;
+}
+
+// ============================================================
+// FIKR BILDIRISH
+// ============================================================
+async function sendFeedback(){
+  const input = document.getElementById('feedbackInput');
+  const text = input.value.trim();
+  const msgEl = document.getElementById('feedbackMsg');
+  const btnEl = document.getElementById('feedbackSendBtn');
+
+  if(!text){
+    msgEl.textContent = 'Iltimos, fikringizni yozing';
+    msgEl.className = 'pm-code-msg error';
+    return;
+  }
+
+  btnEl.disabled = true;
+  btnEl.textContent = 'Yuborilmoqda...';
+
+  try{
+    const res = await fetch(CALORIE_API_URL + '/send-feedback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: text, name: state.name || 'Noma\u02bclum', goal: goal })
+    });
+    const data = await res.json();
+    if(data.ok){
+      msgEl.textContent = 'Rahmat! Fikringiz yuborildi ✅';
+      msgEl.className = 'pm-code-msg success';
+      input.value = '';
+    } else {
+      msgEl.textContent = 'Xatolik yuz berdi, qayta urinib ko\u02bcring';
+      msgEl.className = 'pm-code-msg error';
+    }
+  } catch(err){
+    msgEl.textContent = 'Internetni tekshiring';
+    msgEl.className = 'pm-code-msg error';
+  }
+
+  btnEl.disabled = false;
+  btnEl.textContent = 'Yuborish';
 }
 
 // ============================================================

@@ -990,6 +990,52 @@
     color:var(--lime);
   }
 
+  /* Reyting */
+  .lb-tabs{ display:flex; gap:8px; margin:16px 0; }
+  .lb-tab{
+    flex:1;
+    background:var(--surface-2);
+    border:1.5px solid var(--line);
+    border-radius:12px;
+    padding:10px;
+    color:var(--muted);
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    transition:.15s;
+  }
+  .lb-tab.active{
+    background:rgba(198,255,107,0.12);
+    border-color:var(--lime);
+    color:var(--lime);
+  }
+  .lb-list{ display:flex; flex-direction:column; gap:8px; }
+  .lb-item{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:11px 14px;
+  }
+  .lb-item.me{ border-color:var(--lime); background:rgba(198,255,107,0.08); }
+  .lb-rank{
+    width:26px; height:26px;
+    border-radius:50%;
+    background:var(--bg);
+    display:flex; align-items:center; justify-content:center;
+    font-size:12px;
+    font-weight:700;
+    color:var(--muted);
+    flex-shrink:0;
+  }
+  .lb-rank.top1{ background:linear-gradient(135deg,#FFD700,#FFA500); color:#2A1F00; }
+  .lb-rank.top2{ background:linear-gradient(135deg,#C0C0C0,#909090); color:#1A1A1A; }
+  .lb-rank.top3{ background:linear-gradient(135deg,#CD7F32,#8B5A2B); color:#fff; }
+  .lb-name{ flex:1; font-size:13.5px; font-weight:600; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .lb-kg{ font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:13.5px; color:var(--lime); }
+
   /* Bildirishnoma kartasi */
   .notif-card{
     background:var(--surface-2);
@@ -1498,6 +1544,10 @@
               <div class="tile-icon">📅</div>
               <div class="tile-label">Muddat</div>
             </div>
+            <div class="tile" onclick="openSheet('sheet-leaderboard')" style="animation-delay:.14s">
+              <div class="tile-icon">🏆</div>
+              <div class="tile-label">Reyting</div>
+            </div>
           </div>
         </div>
 
@@ -1674,6 +1724,17 @@
           <div class="ic-title">📊 Haftalik hisobot</div>
           <div id="weeklyReportBody">
             <div class="ic-body">Hisobot uchun kamida 7 kunlik vazn ma\u02bclumoti kerak.</div>
+          </div>
+        </div>
+
+        <div class="sheet-panel" id="sheet-leaderboard">
+          <div class="ic-title">🏆 Foydalanuvchilar reytingi</div>
+          <div class="lb-tabs">
+            <button class="lb-tab active" id="lbTabLose" onclick="switchLeaderboard('lose')">📉 Ozganlar</button>
+            <button class="lb-tab" id="lbTabGain" onclick="switchLeaderboard('gain')">📈 Semirganlar</button>
+          </div>
+          <div class="lb-list" id="leaderboardList">
+            <div class="ic-body">Yuklanmoqda...</div>
           </div>
         </div>
 
@@ -2085,6 +2146,59 @@ function logNewWeight(){
   saveWeightLog(log);
   input.value = '';
   renderWeightProgress();
+  syncLeaderboard(val);
+}
+
+// ============================================================
+// REYTING (haqiqiy foydalanuvchilar, server orqali)
+// ============================================================
+function syncLeaderboard(latestWeight){
+  const progress = goal === 'lose' ? (curWeight - latestWeight) : (latestWeight - curWeight);
+  if(progress <= 0) return; // faqat ijobiy natijalar reytingga tushadi
+  const id = getOrCreateReferralCode();
+  fetch(CALORIE_API_URL + '/update-leaderboard', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id: id, name: state.name || 'Foydalanuvchi', progress: Math.round(progress*10)/10, goal: goal })
+  }).catch(function(){});
+}
+
+let currentLeaderboardType = 'lose';
+
+function switchLeaderboard(type){
+  currentLeaderboardType = type;
+  document.getElementById('lbTabLose').classList.toggle('active', type === 'lose');
+  document.getElementById('lbTabGain').classList.toggle('active', type === 'gain');
+  loadLeaderboard(type);
+}
+
+async function loadLeaderboard(type){
+  const listEl = document.getElementById('leaderboardList');
+  listEl.innerHTML = '<div class="ic-body">Yuklanmoqda...</div>';
+  const myId = localStorage.getItem('forma_referral_code');
+  try{
+    const res = await fetch(CALORIE_API_URL + '/leaderboard?type=' + type);
+    const data = await res.json();
+    const entries = data.entries || [];
+    if(entries.length === 0){
+      listEl.innerHTML = '<div class="ic-body">Hozircha bu bo\u02bclimda natija yo\u02bcq. Birinchi bo\u02bclib vazn kiriting!</div>';
+      return;
+    }
+    listEl.innerHTML = '';
+    entries.forEach(function(e, i){
+      const rank = i + 1;
+      const div = document.createElement('div');
+      div.className = 'lb-item' + (e.id === myId ? ' me' : '');
+      const rankClass = rank === 1 ? ' top1' : rank === 2 ? ' top2' : rank === 3 ? ' top3' : '';
+      div.innerHTML =
+        '<div class="lb-rank' + rankClass + '">' + rank + '</div>' +
+        '<div class="lb-name">' + (e.name || 'Foydalanuvchi') + (e.id === myId ? ' (Siz)' : '') + '</div>' +
+        '<div class="lb-kg">' + e.progress + ' kg</div>';
+      listEl.appendChild(div);
+    });
+  } catch(err){
+    listEl.innerHTML = '<div class="ic-body">Yuklab bo\u02bclmadi, internetni tekshiring.</div>';
+  }
 }
 
 function openSheet(id){
@@ -2108,6 +2222,9 @@ function openSheet(id){
   }
   if(id === 'sheet-profile'){
     loadProfileForm();
+  }
+  if(id === 'sheet-leaderboard'){
+    loadLeaderboard(currentLeaderboardType);
   }
 }
 

@@ -598,31 +598,34 @@
   .tab-btn{
     background:none;
     border:none;
-    padding:9px 22px;
+    padding:8px 16px;
     border-radius:14px;
     cursor:pointer;
     -webkit-tap-highlight-color:transparent;
     transition:background .15s ease, transform .12s ease;
     position:relative;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:3px;
+    flex:1;
   }
   .tab-btn:active{ transform:scale(.9); }
   .tab-btn-icon{
-    font-size:22px;
+    font-size:20px;
     display:block;
     filter:grayscale(1) opacity(.5);
     transition:filter .2s ease;
   }
-  .tab-btn.active .tab-btn-icon{ filter:grayscale(0) opacity(1); }
-  .tab-btn.active{ background:rgba(198,255,107,0.1); }
-  .tab-btn.active::after{
-    content:'';
-    position:absolute;
-    bottom:2px; left:50%;
-    transform:translateX(-50%);
-    width:4px; height:4px;
-    border-radius:50%;
-    background:var(--lime);
+  .tab-btn-label{
+    font-size:10px;
+    font-weight:600;
+    color:var(--muted);
+    transition:color .2s ease;
   }
+  .tab-btn.active .tab-btn-icon{ filter:grayscale(0) opacity(1); }
+  .tab-btn.active .tab-btn-label{ color:var(--lime); }
+  .tab-btn.active{ background:rgba(198,255,107,0.1); }
   .tile{
     background:linear-gradient(160deg, #1E3B32, #16302A);
     border:1px solid var(--line);
@@ -1342,6 +1345,51 @@
   .pm-code-msg{ font-size:12px; margin-top:10px; text-align:center; min-height:16px; }
   .pm-code-msg.error{ color:var(--danger); }
   .pm-code-msg.success{ color:var(--lime); }
+
+  /* Tutorial */
+  .tutorial-item{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:12px 14px;
+    margin-bottom:10px;
+  }
+  .tutorial-icon{ font-size:22px; flex-shrink:0; }
+  .tutorial-txt strong{ display:block; font-size:13.5px; }
+  .tutorial-txt span{ font-size:11.5px; color:var(--muted); }
+
+  /* Spotlight tutorial */
+  .spotlight-overlay{
+    position:fixed;
+    inset:0;
+    z-index:2000;
+    display:none;
+  }
+  .spotlight-overlay.show{ display:block; }
+  .spotlight-svg{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    pointer-events:none;
+  }
+  #spotlightHole{ transition: x .35s ease, y .35s ease, width .35s ease, height .35s ease; }
+  .spotlight-tooltip{
+    position:absolute;
+    background:var(--surface);
+    border:1px solid rgba(198,255,107,0.35);
+    border-radius:16px;
+    padding:16px 18px;
+    width:240px;
+    box-shadow:0 20px 40px rgba(0,0,0,0.5);
+    transition: top .35s ease, left .35s ease;
+  }
+  .spotlight-step-count{ font-size:10.5px; color:var(--lime); font-weight:700; margin-bottom:6px; letter-spacing:.04em; }
+  .spotlight-tooltip-text{ font-size:13px; color:var(--text); line-height:1.5; margin-bottom:12px; }
+  .spotlight-tooltip .btn{ width:100%; }
 </style>
 
 </head>
@@ -1611,15 +1659,19 @@
       <div class="bottom-tabbar">
         <button class="tab-btn active" id="tabbtn-today" onclick="switchTab('today')">
           <span class="tab-btn-icon">🗓️</span>
+          <span class="tab-btn-label">Bugun</span>
         </button>
         <button class="tab-btn" id="tabbtn-progress" onclick="switchTab('progress')">
           <span class="tab-btn-icon">📈</span>
+          <span class="tab-btn-label">Natijalar</span>
         </button>
         <button class="tab-btn" id="tabbtn-help" onclick="switchTab('help')">
           <span class="tab-btn-icon">🤝</span>
+          <span class="tab-btn-label">Yordam</span>
         </button>
         <button class="tab-btn" id="tabbtn-other" onclick="switchTab('other')">
           <span class="tab-btn-icon">⚙️</span>
+          <span class="tab-btn-label">Boshqa</span>
         </button>
       </div>
     </div>
@@ -1843,6 +1895,24 @@
       </div>
     </div>
 
+    <!-- Birinchi marta kirganda spotlight-uslubidagi tushuntirish -->
+    <div class="spotlight-overlay" id="spotlightOverlay">
+      <svg class="spotlight-svg" id="spotlightSvg">
+        <defs>
+          <mask id="spotlightMask">
+            <rect x="0" y="0" width="100%" height="100%" fill="white"></rect>
+            <rect id="spotlightHole" x="0" y="0" width="0" height="0" rx="16" fill="black"></rect>
+          </mask>
+        </defs>
+        <rect x="0" y="0" width="100%" height="100%" fill="rgba(6,15,12,0.86)" mask="url(#spotlightMask)"></rect>
+      </svg>
+      <div class="spotlight-tooltip" id="spotlightTooltip">
+        <div class="spotlight-step-count" id="spotlightStepCount">1/5</div>
+        <div class="spotlight-tooltip-text" id="spotlightTooltipText"></div>
+        <button class="btn btn-primary btn-small" onclick="nextSpotlightStep()" id="spotlightNextBtn">Tushundim</button>
+      </div>
+    </div>
+
     <!-- Exercise detail modal -->
     <div class="modal-backdrop" id="exerciseDetailModal">
       <div class="modal-box">
@@ -1856,6 +1926,7 @@
         </div>
         <div class="ic-title" style="margin-top:20px;">Qanday bajarish kerak</div>
         <div class="ex-steps" id="exDetailSteps"></div>
+        <div class="hint" style="margin-top:16px;">⚠️ Og'riq sezsangiz, darhol to'xtating. Sog'liq holatingizga qarab, mashqni boshlashdan oldin shifokor yoki sertifikatlangan murabbiy bilan maslahatlashing.</div>
       </div>
     </div>
 
@@ -3096,6 +3167,70 @@ function finish(){
   saveUserData();
   renderDashboard();
   showStep(10);
+  showTutorialIfNeeded();
+}
+
+// ============================================================
+// SPOTLIGHT TUTORIAL (birinchi marta kirganda)
+// ============================================================
+const SPOTLIGHT_STEPS = [
+  { id: 'calorieCard', text: "Bu yerda kunlik kaloriya me\u02bcyoringiz ko\u02bcrinadi — har kuni shuncha kaloriya iste\u02bcmol qilishingiz tavsiya etiladi." },
+  { id: 'tabbtn-today', text: "\u2018Bugun\u2019 bo\u02bclimida kunlik jadval, ovqat-kaloriya va suv ichish kuzatuvi bor." },
+  { id: 'tabbtn-progress', text: "\u2018Natijalar\u2019da vazningizni kiritasiz, o\u02bczgarishni va reytingni ko\u02bcrasiz." },
+  { id: 'tabbtn-help', text: "\u2018Yordam\u2019da AI murabbiyga savol berasiz, shaxsiy taom rejasini olasiz." },
+  { id: 'tabbtn-other', text: "\u2018Boshqa\u2019da bildirishnoma, profil va sozlamalar joylashgan." },
+];
+let spotlightIndex = 0;
+
+function showTutorialIfNeeded(){
+  if(localStorage.getItem('forma_tutorial_seen') === 'true') return;
+  setTimeout(function(){
+    spotlightIndex = 0;
+    document.getElementById('spotlightOverlay').classList.add('show');
+    showSpotlightStep();
+  }, 600);
+}
+
+function showSpotlightStep(){
+  const step = SPOTLIGHT_STEPS[spotlightIndex];
+  const target = document.getElementById(step.id);
+  if(!target){ nextSpotlightStep(); return; }
+
+  const rect = target.getBoundingClientRect();
+  const pad = 8;
+  const hole = document.getElementById('spotlightHole');
+  hole.setAttribute('x', rect.left - pad);
+  hole.setAttribute('y', rect.top - pad);
+  hole.setAttribute('width', rect.width + pad*2);
+  hole.setAttribute('height', rect.height + pad*2);
+
+  document.getElementById('spotlightStepCount').textContent = (spotlightIndex+1) + '/' + SPOTLIGHT_STEPS.length;
+  document.getElementById('spotlightTooltipText').textContent = step.text;
+  document.getElementById('spotlightNextBtn').textContent =
+    spotlightIndex === SPOTLIGHT_STEPS.length - 1 ? 'Tushundim, boshlaymiz!' : 'Tushundim';
+
+  const tooltip = document.getElementById('spotlightTooltip');
+  const spaceBelow = window.innerHeight - rect.bottom;
+  let top;
+  if(spaceBelow > 160){
+    top = rect.bottom + 16;
+  } else {
+    top = rect.top - 16 - 140; // tooltip taxminiy balandligi
+  }
+  let left = rect.left + rect.width/2 - 120;
+  left = Math.max(16, Math.min(left, window.innerWidth - 256));
+  tooltip.style.top = top + 'px';
+  tooltip.style.left = left + 'px';
+}
+
+function nextSpotlightStep(){
+  spotlightIndex++;
+  if(spotlightIndex >= SPOTLIGHT_STEPS.length){
+    localStorage.setItem('forma_tutorial_seen', 'true');
+    document.getElementById('spotlightOverlay').classList.remove('show');
+    return;
+  }
+  showSpotlightStep();
 }
 
 function renderDashboard(){
@@ -3353,6 +3488,7 @@ if(loadUserData()){
     if(parseInt(s.dataset.step,10) === 10) s.classList.add('active');
   });
   document.getElementById('progress').style.display = 'none';
+  showTutorialIfNeeded();
 }
 
 if('serviceWorker' in navigator){

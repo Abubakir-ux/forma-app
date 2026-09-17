@@ -1361,6 +1361,61 @@
   .tutorial-txt strong{ display:block; font-size:13.5px; }
   .tutorial-txt span{ font-size:11.5px; color:var(--muted); }
 
+  /* Kunlik odatlar */
+  .habit-streak-banner{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    background:linear-gradient(135deg, rgba(255,178,91,0.14), rgba(255,178,91,0.03));
+    border:1px solid rgba(255,178,91,0.28);
+    border-radius:16px;
+    padding:14px 16px;
+    margin-bottom:16px;
+    cursor:pointer;
+  }
+  .hsb-icon{ font-size:26px; flex-shrink:0; }
+  .hsb-txt{ flex:1; min-width:0; }
+  .hsb-txt strong{ display:block; font-size:14px; }
+  .hsb-txt span{ font-size:11.5px; color:var(--muted); }
+  .hsb-arrow{ color:var(--muted); font-size:20px; }
+
+  .habit-streak-card{
+    text-align:center;
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:20px;
+    margin:16px 0;
+  }
+  .hsc-num{ font-family:'Space Grotesk', sans-serif; font-size:38px; font-weight:700; color:var(--amber); }
+  .hsc-label{ font-size:12px; color:var(--muted); margin-top:4px; }
+
+  .habit-list{ display:flex; flex-direction:column; gap:8px; }
+  .habit-item{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:13px 14px;
+    cursor:pointer;
+    transition:.15s;
+  }
+  .habit-item.checked{ background:rgba(198,255,107,0.1); border-color:rgba(198,255,107,0.35); }
+  .habit-checkbox{
+    width:22px; height:22px;
+    border-radius:7px;
+    border:2px solid var(--muted);
+    flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    font-size:13px;
+    transition:.15s;
+  }
+  .habit-item.checked .habit-checkbox{ background:var(--lime); border-color:var(--lime); color:#0D1F1A; }
+  .habit-text{ font-size:13.5px; flex:1; }
+  .habit-item.checked .habit-text{ color:var(--muted); text-decoration:line-through; }
+
   /* Spotlight tutorial */
   .spotlight-overlay{
     position:fixed;
@@ -1562,6 +1617,14 @@
         </div>
 
         <div class="tab-page active" id="tabpage-today">
+          <div class="habit-streak-banner" id="habitStreakBanner" onclick="openSheet('sheet-habits')">
+            <div class="hsb-icon">🔥</div>
+            <div class="hsb-txt">
+              <strong id="habitStreakText">0 kunlik ketma-ketlik</strong>
+              <span id="habitTodayText">Bugungi odatlarni belgilang</span>
+            </div>
+            <div class="hsb-arrow">›</div>
+          </div>
           <div class="tile-grid">
             <div class="tile" onclick="openSheet('sheet-schedule')" style="animation-delay:.02s">
               <div class="tile-icon">🗓️</div>
@@ -1762,6 +1825,18 @@
             <button class="btn btn-amber" onclick="document.getElementById('foodPhotoInput').click()" id="photoBtn">Rasmga olish / tanlash</button>
             <div class="photo-result" id="photoResult"></div>
           </div>
+        </div>
+
+        <div class="sheet-panel" id="sheet-habits">
+          <div class="ic-title">✅ Kunlik odatlar</div>
+          <div class="ic-body">Tadqiqotlar shuni ko'rsatadi: faqat vazn raqamiga emas, <b>kundalik odatlarga</b> e'tibor qaratganlar uzoq muddatda ko'proq natijaga erishadi.</div>
+
+          <div class="habit-streak-card">
+            <div class="hsc-num" id="habitStreakBig">0</div>
+            <div class="hsc-label">kun ketma-ket barcha odatlarni bajardingiz 🔥</div>
+          </div>
+
+          <div class="habit-list" id="habitList"></div>
         </div>
 
         <div class="sheet-panel" id="sheet-water">
@@ -2026,6 +2101,18 @@ const EXERCISES = {
       "Past, yengil sakrang — oyoq panjasi uchida qo'ning",
       "1 daqiqa sakrash, 30 soniya dam olish tartibida davom eting",
       "Jami 10 daqiqa"
+    ]},
+    {icon:'🏋️', title:"Cho'kkalab turish (squat)", sub:"Haftada 2-3 marta, 3x15", howTo:[
+      "Oyoqlaringizni yelka kengligida qo'ying",
+      "Orqani tik tutib, xuddi stulga o'tirayotgandek pastga tushing",
+      "Tizzalar oyoq uchidan oldinga chiqib ketmasin",
+      "3 ta yondashish, har birida 15 marta"
+    ]},
+    {icon:'💪', title:"Push-up (tortilish)", sub:"Haftada 2-3 marta, 3x10", howTo:[
+      "Qo'llaringizni yelkadan biroz kengroq qo'ying",
+      "Tanani to'g'ri chiziqda tutib, pastga tushing",
+      "Kuchingiz yetmasa, tizzada bajarishingiz mumkin",
+      "3 ta yondashish, har birida 10 martadan"
     ]}
   ],
   gain: [
@@ -3255,12 +3342,14 @@ function renderDashboard(){
     'Xavfsiz sur\u02bcatda (haftasiga ~0.5 kg), <b>' + diffKg + ' kg</b> ' +
     (goal === 'lose' ? 'ozish' : 'semirish') + ' uchun taxminan <b>' + weeks + ' hafta</b> kerak bo\u02bcladi.';
 
-  // Kunlik maslahat
+  // Kunlik maslahat — ilmiy tadqiqotlar (Mayo Clinic, NHS) kardio + kuch mashqlari
+  // birgalikda eng samarali va mushakni saqlab qoluvchi usul ekanini tasdiqlaydi
   const adviceEl = document.getElementById('adviceBody');
   if(goal === 'lose'){
     adviceEl.innerHTML =
-      'Har kuni kamida <b>4-5 km</b> yuring (yoki qadamlar bilan hisoblasangiz ~6000-7000 qadam). ' +
-      'Bundan tashqari, har kuni ertalab <b>1-2 km</b> yengil yugurish yoki tez yurish qo\u02bcshimcha yordam beradi.';
+      'Har kuni kamida <b>4-5 km</b> yuring (yoki qadamlar bilan hisoblasangiz ~6000-7000 qadam) — bu kaloriya sarflaydi. ' +
+      'Bundan tashqari, haftada <b>2-3 marta kuch mashqlari</b> (squat, push-up) qiling — bu mushaklaringizni saqlab, faqat yog\u02bc yo\u02bcqotishga yordam beradi. ' +
+      'Tadqiqotlar shuni ko\u02bcrsatadiki, faqat kardio emas, <b>kardio + kuch mashqlari birgalikda</b> eng samarali va barqaror natija beradi.';
   } else {
     adviceEl.innerHTML =
       'Kuch mashqlarini haftada <b>3-4 marta</b> bajaring, mashqlar orasida tanaga tiklanish uchun dam bering. ' +
